@@ -4,6 +4,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.">"; -- overload the < operator for std_logic_vectors
 use ieee.std_logic_unsigned."="; -- overload the = operator for std_logic_vectors
 use ieee.numeric_std.all; 
+
+library ieee;
+use ieee.std_logic_1164.all;
+library grlib;
+use grlib.amba.all;
+use grlib.stdlib.all;
+use grlib.devices.all;
+library gaisler;
+use gaisler.misc.all;
+
 --Do not contain above when integrating
 
 ENTITY Data_swrapper IS
@@ -17,8 +27,6 @@ end;
 
 ARCHITECTURE convertor of Data_swrapper IS
 begin
-
-
     HRDATA(7 downto 0) <= dmao.rdata(31 downto 24);
     HRDATA(15 downto 8) <= dmao.rdata(23 downto 16);
     HRDATA(23 downto 16) <= dmao.rdata(15 downto 8);
