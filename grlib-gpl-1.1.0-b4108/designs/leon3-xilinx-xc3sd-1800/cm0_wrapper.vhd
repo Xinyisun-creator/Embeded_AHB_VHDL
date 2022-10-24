@@ -23,7 +23,7 @@ end;
 
 
 ARCHITECTURE Wrapper_Arch OF cm0_wrapper IS
-  COMPONENT CORTEXMODS is
+  COMPONENT CORTEXM0DS is
     port(
       HADDR : out std_logic_vector (31 downto 0);
       HSIZE : out std_logic_vector (2 downto 0);
@@ -33,7 +33,13 @@ ARCHITECTURE Wrapper_Arch OF cm0_wrapper IS
       HRDATA : in std_logic_vector (31 downto 0);
       HREADY : in std_logic;
       HCLK : in std_logic;
-      HRESETn : in std_logic
+      HRESETn : in std_logic;
+      
+      HRESP: in std_logic;
+      NMI:in std_logic;
+      IRQ:in std_logic_vector (15 downto 0);
+      RXEV:in std_logic
+      
     );
    END COMPONENT; 
    
@@ -66,10 +72,11 @@ ARCHITECTURE Wrapper_Arch OF cm0_wrapper IS
   signal sig_HRDATA: std_logic_vector (31 downto 0);
   signal sig_HREADY: std_logic;
   
+  signal sig_IRQ: std_logic_vector (15 downto 0):=(others => '0');
 
   
   begin
-    cortex: CORTEXMODS
+    CORTEX:CORTEXM0DS
     port map(
       HCLK => clkm,
       HRESETn => rstn,
@@ -80,11 +87,16 @@ ARCHITECTURE Wrapper_Arch OF cm0_wrapper IS
       HWDATA => sig_HWDATA,
       HWRITE => sig_HWRITE,
       HRDATA => sig_HRDATA,
-      HREADY => sig_HREADY
+      HREADY => sig_HREADY,
+      
+      HRESP => '0',
+      NMI => '0',
+      IRQ => sig_IRQ,
+      RXEV => '0'
       );
 
     
-    AHB: AHB_bridge
+    AHB:AHB_bridge
     port map(
       clkm => clkm,
       rstn => rstn,
