@@ -5,8 +5,16 @@ PORT(
 );
 end;
 
+
+
 ARCHITECTURE convertor of Data_swrapper IS
-begin;
+begin
+
+PORT MAP(
+    dmao => dmao;
+    HRDATA => HRDATA;
+);
+
     HRDATA(7 downto 0) <= dmao(31 downto 24);
     HRDATA(15 downto 8) <= dmao(23 downto 16);
     HRDATA(23 downto 16) <= dmao(15 downto 8);
