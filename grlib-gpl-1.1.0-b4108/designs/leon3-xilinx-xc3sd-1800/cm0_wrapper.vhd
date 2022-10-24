@@ -3,13 +3,21 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.">"; -- overload the < operator for std_logic_vectors
 use ieee.std_logic_unsigned."="; -- overload the = operator for std_logic_vectors
 use ieee.numeric_std.all; 
+library grlib;
+use grlib.amba.all;
+use grlib.stdlib.all;
+use grlib.devices.all;
+library gaisler;
+use gaisler.misc.all;
+library UNISIM;
+use UNISIM.VCOMPONENTS.ALL;
 
 ENTITY cm0_wrapper is
   port(
   clkm: in std_logic;
   rstn: in std_logic;
-  ahbmi: in std_logic;
-  ahbmo(0): out std_logic
+  ahbmi: in ahb_mst_in_type;
+  ahbmo: out ahb_mst_out_type
 );
 end;
 
@@ -25,7 +33,7 @@ ARCHITECTURE Wrapper_Arch OF cm0_wrapper IS
       HRDATA : in std_logic_vector (31 downto 0);
       HREADY : in std_logic;
       HCLK : in std_logic;
-      HRESETn : in std_logic;
+      HRESETn : in std_logic
     );
    END COMPONENT; 
    
@@ -46,7 +54,7 @@ ARCHITECTURE Wrapper_Arch OF cm0_wrapper IS
        HWDATA: in std_logic_vector (31 downto 0);
        HWRITE : in std_logic;
        HRDATA : out std_logic_vector(31 downto 0);
-       HREADY : out std_logic;
+       HREADY : out std_logic
      );
    END COMPONENT;
   
@@ -57,6 +65,8 @@ ARCHITECTURE Wrapper_Arch OF cm0_wrapper IS
   signal sig_HWRITE: std_logic;
   signal sig_HRDATA: std_logic_vector (31 downto 0);
   signal sig_HREADY: std_logic;
+  
+
   
   begin
     cortex: CORTEXMODS
@@ -69,7 +79,7 @@ ARCHITECTURE Wrapper_Arch OF cm0_wrapper IS
       HTRANS => sig_HTRANS,
       HWDATA => sig_HWDATA,
       HWRITE => sig_HWRITE,
-      HRDATA => sig_HRDATA;
+      HRDATA => sig_HRDATA,
       HREADY => sig_HREADY
       );
 
@@ -80,16 +90,18 @@ ARCHITECTURE Wrapper_Arch OF cm0_wrapper IS
       rstn => rstn,
       
       ahbmi => ahbmi,
-      ahbmo => ahbmo(0),
+      ahbmo => ahbmo,
 
       HADDR => sig_HADDR,
       HSIZE => sig_HSIZE,
       HTRANS => sig_HTRANS,
       HWDATA => sig_HWDATA,
       HWRITE => sig_HWRITE,
-      HRDATA => sig_HRDATA;
+      HRDATA => sig_HRDATA,
       HREADY => sig_HREADY      
     );
 END Wrapper_Arch;
+
+----------------------------------
 
    
