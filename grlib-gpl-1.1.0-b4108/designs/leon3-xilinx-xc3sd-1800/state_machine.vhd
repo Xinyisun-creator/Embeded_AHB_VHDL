@@ -45,9 +45,7 @@ TYPE logical_type is (TRUE, FALSE);
 ----------------------------------------------------- 
 -----------------------------------------------------   
 ---add signal here
-
 SIGNAL curState, nextState: state_type; --- states.
-
 ----------------------------------------------------- 
 ----------------------------------------------------- 
 BEGIN
@@ -65,7 +63,11 @@ BEGIN
 -- add state transfer here
   CASE curState IS
     WHEN IDLE =>
+<<<<<<< HEAD
       IF HTRANS = '10' THEN
+=======
+      IF htrans = "10" THEN
+>>>>>>> 2304a5b5a7611f271e28f165e3c41829b607890a
         dmai.start <= '1';
         nextState <= Instr_fetch;
       ELSE
@@ -74,7 +76,7 @@ BEGIN
     
     WHEN Instr_fetch =>
       IF dmao.ready = '1' THEN
-        HREADY < '1';
+        HREADY <= '1';
         nextState <= IDLE;
       ELSE
         nextState <= Instr_fetch;
@@ -89,12 +91,14 @@ END PROCESS;
     CASE curState IS
     WHEN IDLE =>
       HREADY <= '1';
-      dmail.start <= '0';
+      dmai.start <= '0';
     WHEN Instr_fetch =>
       HREADY <= '0';
-      dmail.start <= '0';
-      
-END PROCESS;
+      dmai.start <= '0';
+      END CASE;
+
+  END PROCESS;
 -----------------------------------------------------  
+END myArch;
 
 
