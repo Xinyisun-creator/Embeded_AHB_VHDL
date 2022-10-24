@@ -63,11 +63,7 @@ BEGIN
 -- add state transfer here
   CASE curState IS
     WHEN IDLE =>
-<<<<<<< HEAD
-      IF HTRANS = '10' THEN
-=======
       IF htrans = "10" THEN
->>>>>>> 2304a5b5a7611f271e28f165e3c41829b607890a
         dmai.start <= '1';
         nextState <= Instr_fetch;
       ELSE
