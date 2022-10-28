@@ -11,9 +11,10 @@ use gaisler.misc.all;
 library UNISIM;
 use UNISIM.VComponents.all;
 
+
 entity AHB_bridge is
   port(
-    -- Clock and Reset -----------------
+ -- Clock and Reset -----------------
     clkm : in std_logic;
     rstn : in std_logic;
  -- AHB Master records --------------
@@ -30,6 +31,7 @@ entity AHB_bridge is
     
  );
 end;
+
 
 architecture structural of AHB_bridge is
 --declare a component for state_machine
@@ -53,11 +55,11 @@ architecture structural of AHB_bridge is
 --declare a component for ahbmst 
   component ahbmst
     port(
-      ahbmi : in ahb_mst_in_type;
-      ahbmo : out ahb_mst_out_type;
+      ahbi : in ahb_mst_in_type;
+      ahbo : out ahb_mst_out_type;
       
-      clkm : in std_logic;
-      rstn : in std_logic;
+      clk : in std_logic;
+      rst : in std_logic;
       dmai : in ahb_dma_in_type;
       dmao : out ahb_dma_out_type
       
@@ -67,7 +69,7 @@ architecture structural of AHB_bridge is
       
 
 --declare a component for data_swapper 
-  component data_swapper
+  component data_swrapper
     port(
       HRDATA : out std_logic_vector (31 downto 0);
       dmao : in ahb_dma_out_type
@@ -78,18 +80,22 @@ architecture structural of AHB_bridge is
       
  
 
-  
+-- define two new signal for connecting dmai and dmao signals between  state machine and ahbmst
   signal my_dmai : ahb_dma_in_type;
   signal my_dmao : ahb_dma_out_type;
+  
+  
+-- define two signals called ahbi and ahbo connected between ahbmst and cm0_wrapper
   signal ahbi : ahb_mst_in_type;
   signal ahbo : ahb_mst_out_type;
+   
 
 
 
 
   begin
 --instantiate state_machine component and make the connections
-    B0 : state_machine
+    state : state_machine
       PORT MAP(
         HADDR => HADDR,
         HSIZE => HSIZE,
@@ -97,41 +103,34 @@ architecture structural of AHB_bridge is
         HWDATA => HWDATA,
         HWRITE => HWRITE,
         HREADY => HREADY,
-        
         clkm => clkm,
         rstn => rstn,
-        
         dmai => my_dmai,
         dmao => my_dmao
-
         );
-   
-    
-    B1 : data_swapper
+        
+        
+--instantiate the data_swapper component and make the connections  
+    swrapper : data_swrapper
         PORT MAP(
           HRDATA => HRDATA,
           dmao => my_dmao
-        );
+        );  
     
-
     
-    B2 : ahbmst
-        PORT MAP(
-          clkm => clkm,
-          rstn => rstn,
-          
-          ahbmi => ahbi,
-          ahbmo => ahbo,
-          dmao => my_dmao,
-          dmai => my_dmai
-          
-          
-        );
-    
-          
-        
 --instantiate the ahbmst component and make the connections 
---instantiate the data_swapper component and make the connections
+    ahbmaster : ahbmst
+        PORT MAP(
+          clk => clkm,
+          rst => rstn,
+          ahbi => ahbmi,
+          ahbo => ahbmo,
+          dmao => my_dmao,
+          dmai => my_dmai  
+        );
+    
+          
+      
 end structural;
   
 
