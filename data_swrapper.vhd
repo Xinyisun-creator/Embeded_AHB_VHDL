@@ -14,8 +14,8 @@ use grlib.devices.all;
 library gaisler;
 use gaisler.misc.all;
 
---Do not contain above when integrating
 
+-- introduce the input & output signals
 ENTITY Data_swrapper IS
 PORT(
     dmao: in ahb_dma_out_type;
@@ -24,12 +24,12 @@ PORT(
 end;
 
 
-
+-- just reverse the order of the incoming signal 
 ARCHITECTURE convertor of Data_swrapper IS
 begin
-    HRDATA(7 downto 0) <= dmao.rdata(31 downto 24);
-    HRDATA(15 downto 8) <= dmao.rdata(23 downto 16);
-    HRDATA(23 downto 16) <= dmao.rdata(15 downto 8);
-    HRDATA(31 downto 24) <= dmao.rdata(7 downto 0);
+    HRDATA(7 downto 0) <= dmao.rdata(31 downto 24); --assign 4th input byte to 1st output
+    HRDATA(15 downto 8) <= dmao.rdata(23 downto 16); --assign 3rd input byte to 2nd output
+    HRDATA(23 downto 16) <= dmao.rdata(15 downto 8); --assign 2nd input byte to 3rd output
+    HRDATA(31 downto 24) <= dmao.rdata(7 downto 0); --assign 1st input byte to 4th output
 
 end;
