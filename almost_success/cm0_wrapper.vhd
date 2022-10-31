@@ -1,4 +1,3 @@
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.">"; -- overload the < operator for std_logic_vectors
@@ -10,15 +9,13 @@ use grlib.stdlib.all;
 use grlib.devices.all;
 library gaisler;
 use gaisler.misc.all;
-library UNISIM;
-use UNISIM.VCOMPONENTS.ALL;
+--library UNISIM;
+--use UNISIM.VCOMPONENTS.ALL;
 
 ENTITY cm0_wrapper is
   port(
-  --- clock and reset ---
   clkm: in std_logic;
   rstn: in std_logic;
-  --- AHB master records ---
   ahbmi: in ahb_mst_in_type;
   ahbmo: out ahb_mst_out_type;
   cm0_led: out std_logic
@@ -67,13 +64,6 @@ ARCHITECTURE Wrapper_Arch OF cm0_wrapper IS
        HREADY : out std_logic
      );
    END COMPONENT;
-   
-   COMPONENT DetectorBus is
-    Port ( Clock : in  STD_LOGIC;
-           DataBus : in  STD_LOGIC_VECTOR (31 downto 0);
-           Detector : out  STD_LOGIC);
-           
-    END COMPONENT;
  
   signal sig_HADDR: std_logic_vector (31 downto 0);
   signal sig_HSIZE: std_logic_vector (2 downto 0);
@@ -98,7 +88,7 @@ ARCHITECTURE Wrapper_Arch OF cm0_wrapper IS
       HADDR => sig_HADDR,
       HSIZE => sig_HSIZE,
       HTRANS => sig_HTRANS,
-      HWDATA => sig_HWDATA,
+      HWDATA => sig_HWDATA, 
       HWRITE => sig_HWRITE,
       HRDATA => sig_HRDATA,
       HREADY => sig_HREADY,
@@ -127,26 +117,15 @@ ARCHITECTURE Wrapper_Arch OF cm0_wrapper IS
       HREADY => sig_HREADY      
     );
    
-   Detector:DetectorBus
-   port map(
-      Clock=> clkm,
-      DataBus=> sig_HRDATA,
-      Detector => sig_LED
-     
-   );
-   
 --begin
---  LED_blink : process(sig_HRDATA,clkm)
---  begin
---    if (falling_edge(clkm)) then
---      if sig_HRDATA(31 downto 0) = "00001010000010100000101000001010" then
---        sig_LED <= '0';
---      else
---        sig_LED <= '1';
---      end if;
---    end if;
---  end process;
-
+  LED_blink : process(sig_HRDATA,clkm)
+  begin
+      if sig_HRDATA(31 downto 0) = "00001010000010100000101000001010" then
+        sig_LED <= '1';
+      else
+        sig_LED <= '0';
+      end if;
+  end process;
   cm0_led <= sig_LED;
 
 END Wrapper_Arch;
