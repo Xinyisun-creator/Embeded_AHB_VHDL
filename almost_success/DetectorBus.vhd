@@ -50,17 +50,17 @@ begin
 	if (falling_edge(Clock)) then
 		if (DataBus(31 downto 0)="10101010101010100101010101010101" or
               DataBus(31 downto 0)="10101010101010100110011001100110") then
-			trigger<='1';
-			rst_ff<='0';
-		else
 			trigger<='0';
+			rst_ff<='1';
+		else
+			rst_ff<='0';
 		end if;
 
 	if (DataBus(31 downto 0)="00001010000010100000101000001010" or 
           DataBus(31 downto 0)="11110010111100101111001011110010") then
 		
-		rst_ff<='1';
-		trigger<='0';
+		trigger<='1';
+		rst_ff<='0';
 		
 	
 	end if;
