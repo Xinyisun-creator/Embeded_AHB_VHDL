@@ -176,7 +176,7 @@ void Motor_BackwardSimple(uint16_t duty, uint32_t time_ms){
           SysTick_Wait1us(1);
 
         // turn off the PWM of both motors
-          P2->DIR |= 0xC0
+          ;
           P2->OUT &= ~0xC0; //~11000000
 
         // (3) wait for 1us for another cycle from the duty
@@ -241,7 +241,7 @@ void Motor_LeftSimple(uint16_t duty, uint32_t time_ms){
         SysTick_Wait1us(1);
 
       // turn off the PWM of both motors
-        P2->DIR |= 0xC0
+        P2->DIR |= 0xC0;
         P2->OUT &= ~0xC0; //~11000000
 
       // (3) wait for 1us for another cycle from the duty
@@ -305,7 +305,7 @@ void Motor_RightSimple(uint16_t duty, uint32_t time_ms){
         SysTick_Wait1us(1);
 
       // turn off the PWM of both motors
-        P2->DIR |= 0xC0
+        P2->DIR |= 0xC0;
         P2->OUT &= ~0xC0; //~11000000
 
       // (3) wait for 1us for another cycle from the duty
@@ -317,3 +317,4 @@ void Motor_RightSimple(uint16_t duty, uint32_t time_ms){
     }// for loop
 
 }
+
