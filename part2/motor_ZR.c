@@ -1,4 +1,5 @@
 
+
 /*
 Simplified BSD License (FreeBSD License)
 Copyright (c) 2017, Jonathan Valvano, All rights reserved.
@@ -83,7 +84,7 @@ void Motor_ForwardSimple(uint16_t duty, uint32_t time_ms){
     // (1) Set the direction (DIR) for motor forward of the port
     //      For example: P?->DIR |= 0x??;
     // Where P? is the port number and 0x?? is the pins that will be used
-    P1 ->DIR |= 0xC0;
+    P1 ->DIR |= 0xC0; //set the in/output for pins
 
 
     // (2) Set the output (OUT) of the port to run the motor
@@ -176,8 +177,8 @@ void Motor_BackwardSimple(uint16_t duty, uint32_t time_ms){
           SysTick_Wait1us(1);
 
         // turn off the PWM of both motors
-          ;
-          P2->OUT &= ~0xC0; //~11000000
+          P2->DIR |= 0xC0;
+          P2->OUT |= ~0xC0; //~11000000
 
         // (3) wait for 1us for another cycle from the duty
           SysTick_Wait1us(1);
@@ -242,7 +243,7 @@ void Motor_LeftSimple(uint16_t duty, uint32_t time_ms){
 
       // turn off the PWM of both motors
         P2->DIR |= 0xC0;
-        P2->OUT &= ~0xC0; //~11000000
+        P2->OUT |= ~0xC0; //~11000000
 
       // (3) wait for 1us for another cycle from the duty
         SysTick_Wait1us(1);
@@ -306,7 +307,7 @@ void Motor_RightSimple(uint16_t duty, uint32_t time_ms){
 
       // turn off the PWM of both motors
         P2->DIR |= 0xC0;
-        P2->OUT &= ~0xC0; //~11000000
+        P2->OUT |= ~0xC0; //~11000000
 
       // (3) wait for 1us for another cycle from the duty
         SysTick_Wait1us(1);
@@ -317,4 +318,3 @@ void Motor_RightSimple(uint16_t duty, uint32_t time_ms){
     }// for loop
 
 }
-
