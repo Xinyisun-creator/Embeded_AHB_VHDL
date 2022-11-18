@@ -1,5 +1,3 @@
-
-
 /*
 Simplified BSD License (FreeBSD License)
 Copyright (c) 2017, Jonathan Valvano, All rights reserved.
@@ -107,14 +105,14 @@ void Motor_ForwardSimple(uint16_t duty, uint32_t time_ms){
         P2->OUT |= ~0x3F; // ~00111111
 
       // (2) wait for 1us for the duty
-        SysTick_Wait1us(1);
+        SysTick_Wait1us(L);
 
       // turn off the PWM of both motors
         P2->DIR |= 0xC0;
         P2->OUT |= ~0xC0;
 
       // (3) wait for 1us for another cycle from the duty
-        SysTick_Wait1us(1);
+         (L);
 
       // (4) wait for 1ms using SysTick_Wait
         SysTick_Wait10ms(1);
@@ -147,7 +145,7 @@ void Motor_BackwardSimple(uint16_t duty, uint32_t time_ms){
     // (2) Set the output (OUT) of the port to run the motor
     //      For example: P?->OUT |= 0x??;
     // Where P? is the port number and 0x?? is the pins that will be used
-    P1 ->OUT |= 0x00;
+    P1 ->OUT &= 0x3F;
 
     /*
       Section mtr_pwm_loop
@@ -174,14 +172,14 @@ void Motor_BackwardSimple(uint16_t duty, uint32_t time_ms){
           P2->OUT |= ~0x3F; // ~00111111
 
         // (2) wait for 1us for the duty
-          SysTick_Wait1us(1);
+          SysTick_Wait1us(L);
 
         // turn off the PWM of both motors
           P2->DIR |= 0xC0;
           P2->OUT |= ~0xC0; //~11000000
 
         // (3) wait for 1us for another cycle from the duty
-          SysTick_Wait1us(1);
+          SysTick_Wait1us(L);
 
         // (4) wait for 1ms using SysTick_Wait
           SysTick_Wait10ms(1);
@@ -213,7 +211,8 @@ void Motor_LeftSimple(uint16_t duty, uint32_t time_ms){
     // (2) Set the output (OUT) of the port to run the motor
     //      For example: P?->OUT |= 0x??;
     // Where P? is the port number and 0x?? is the pins that will be used
-    P2 ->OUT |= 0x40;
+    P1 ->OUT &= 0x7F; // control left to be backward
+    P1 ->OUT |= 0x40; // control right to be forward
 
     /*
       Section mtr_pwm_loop
@@ -239,14 +238,14 @@ void Motor_LeftSimple(uint16_t duty, uint32_t time_ms){
         P2->OUT |= ~0x3F; // ~00111111
 
       // (2) wait for 1us for the duty
-        SysTick_Wait1us(1);
+        SysTick_Wait1us(L);
 
       // turn off the PWM of both motors
         P2->DIR |= 0xC0;
         P2->OUT |= ~0xC0; //~11000000
 
       // (3) wait for 1us for another cycle from the duty
-        SysTick_Wait1us(1);
+        SysTick_Wait1us(L);
 
       // (4) wait for 1ms using SysTick_Wait
         SysTick_Wait10ms(1);
@@ -278,6 +277,7 @@ void Motor_RightSimple(uint16_t duty, uint32_t time_ms){
     //      For example: P?->OUT |= 0x??;
     // Where P? is the port number and 0x?? is the pins that will be used
     P1 ->OUT |= 0x80;
+    P1 ->OUT &= 0xBF;
 
     /*
       Section mtr_pwm_loop
@@ -303,14 +303,14 @@ void Motor_RightSimple(uint16_t duty, uint32_t time_ms){
         P2->OUT |= ~0x3F; // ~00111111
 
       // (2) wait for 1us for the duty
-        SysTick_Wait1us(1);
+        SysTick_Wait1us(L);
 
       // turn off the PWM of both motors
         P2->DIR |= 0xC0;
         P2->OUT |= ~0xC0; //~11000000
 
       // (3) wait for 1us for another cycle from the duty
-        SysTick_Wait1us(1);
+        SysTick_Wait1us(L);
 
       // (4) wait for 1ms using SysTick_Wait
         SysTick_Wait10ms(1);
