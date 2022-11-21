@@ -373,7 +373,9 @@ void Switch_Init(void){
 
 int main(void){
     uint8_t status;
-    int mdoe = 0;
+    int switch_en = 0;
+    int mode = 0;
+    int count=0;
 
     reset:
   Clock_Init48MHz();        // Initialise clock with 48MHz frequency
@@ -397,56 +399,106 @@ int main(void){
 
   // Run forever
   while(1){
+      Port2_Output(0);
 
+      while(mode == 0)
+      {Port2_Output(0);
+          int i = 0;
+          for(i = 0; i <= 5; i++)
+          {
+              Port2_Output(RED);
+              SysTick_Wait10ms(5);
+              if(SW2IN == 1 && SW1IN == 1)
+                  {count = count+1;}
+              Port2_Output(0);
+              SysTick_Wait10ms(5);
+          }
+          Port2_Output(0);
+          if(count == 0){mode = 1;}
+          else{mode = 2;count=0;}
+      }
+
+      Port2_Output(WHITE);
 
       if(SW1IN == 1 && SW2IN != 1 )
-      {
-          mode = 1;
-      }
+      {switch_en = 1;}
 
       else if(SW2IN == 1 && SW1IN != 1 )
+      {switch_en = 2;}
+
+//      else if(SW2IN == 1 && SW1IN == 1 ) // press 2 switch, then reset
+//      {switch_en = 0;mode = 0;goto reset;}
+
+
+      if(mode == 2)
       {
-          mode = 2;
-      }
+          Port2_Output(BLUE);
+          if(switch_en == 0)
+          {__no_operation();mode = 0;}
 
-      else if(SW2IN == 1 && SW1IN == 1 ) // press 2 switch, then reset
-      {
-          mode = 0;
-          goto reset;
-      }
-
-
-      if(mode == 0)
-      {
-          __no_operation();
-          mode = 0;
-      }
-
-      else if(mode == 1){
-          DisableInterrupts();
-          status = Bump_Read_Input();
-          if (status == 0x6D || status == 0xAD || status == 0xCD || status == 0xE5 || status == 0xE9 || status == 0xEC)
+          else if(switch_en == 1)
           {
-              checkbumpswitch(status,SW1IN,SW2IN);
-          }
+              DisableInterrupts();
+              status = Bump_Read_Input();
+              if (status == 0x6D || status == 0xAD || status == 0xCD || status == 0xE5 || status == 0xE9 || status == 0xEC)
+              {checkbumpswitch(status,SW1IN,SW2IN);}
 
-          if (SW2IN == 1 && SW1IN == 1 )
-          {mode = 0;}
-          else if(SW2IN == 1)
-          {mdoe = 2;}
+              if (SW2IN == 1 && SW1IN == 1 )
+              {mode = 0;}
+              else if(SW2IN == 1)
+              {switch_en = 2;}
 
-          Motor_ForwardSimple(500,1);
-      }
+              Motor_ForwardSimple(500,1);
+          }// else if
 
 
-      else if(mode == 2){
-          EnableInterrupts();
-          status = Bump_Read_Input();
-          Motor_ForwardSimple(300,1);
+          else if(switch_en == 2)
+          {
+              EnableInterrupts();
+              status = Bump_Read_Input();
+              Motor_ForwardSimple(300,1);
 
-          if (SW2IN == 1 && SW1IN == 1 )
-          {mode = 0;}
-          //EnableInterrupts();       // Clear the I bit
+              if (SW2IN == 1 && SW1IN == 1 )
+              {switch_en = 0;}
+              //EnableInterrupts();       // Clear the I bit
+          }//else if
+
+      }//if mode == 1
+
+      else if(mode == 2)
+      {
+          if(switch_en == 0)
+          {__no_operation();mode = 0;}
+
+          else if(switch_en == 1)
+          {
+              EnableInterrupts();
+              status = Bump_Read_Input();
+              Motor_ForwardSimple(300,1);
+
+              if (SW2IN == 1 && SW1IN == 1 )
+              {switch_en = 0;}
+
+          }// else if
+
+
+          else if(switch_en == 2)
+          {
+              DisableInterrupts();
+              status = Bump_Read_Input();
+
+              if (status == 0x6D || status == 0xAD || status == 0xCD || status == 0xE5 || status == 0xE9 || status == 0xEC)
+              {checkbumpswitch(status,SW1IN,SW2IN);}
+
+              if (SW2IN == 1 && SW1IN == 1 )
+              {mode = 0;}
+
+              else if(SW2IN == 1)
+              {switch_en = 2;}
+
+              Motor_ForwardSimple(500,1);
+
+          }//else if
       }
 
 
