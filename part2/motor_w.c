@@ -90,7 +90,7 @@ void Motor_ForwardSimple(uint16_t duty, uint32_t time_ms){
     // (2) Set the output (OUT) of the port to run the motor
     //      For example: P?->OUT |= 0x??;
     // Where P? is the port number and 0x?? is the pins that will be used
-    P1 ->OUT |= ~0xC0; //set direction of both wheels
+    P1 ->OUT &= ~0xC0; //set direction of both wheels
 
     /*
       Section mtr_pwm_loop
@@ -148,7 +148,7 @@ void Motor_BackwardSimple(uint16_t duty, uint32_t time_ms){
     // (2) Set the output (OUT) of the port to run the motor
     //      For example: P?->OUT |= 0x??;
     // Where P? is the port number and 0x?? is the pins that will be used
-    P1 ->OUT &= 0x3F;
+    P1 ->OUT |= 0xC0;
 
     /*
       Section mtr_pwm_loop
