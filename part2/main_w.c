@@ -123,7 +123,10 @@ void PORT4_IRQHandler(void){
             // Change the coloured LED into yellow (turn left)
             Port2_Output(YELLOW);
             // Make a left turn at 500 duty for 100ms
-            Motor_LeftSimple(500,100);
+            Motor_LeftSimple(100,100);
+            Motor_LeftSimple(200,100);
+            Motor_LeftSimple(300,100);
+            Motor_LeftSimple(400,300);
             // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
@@ -143,7 +146,10 @@ void PORT4_IRQHandler(void){
             // Change the coloured LED into yellow (turn left)
             Port2_Output(YELLOW);
             // Make a left turn at 500 duty for 200ms
-            Motor_LeftSimple(500,200);
+            Motor_LeftSimple(100,100);
+            Motor_LeftSimple(200,100);
+            Motor_LeftSimple(300,100);
+            Motor_LeftSimple(400,300);
             // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
@@ -163,7 +169,10 @@ void PORT4_IRQHandler(void){
             // Change the coloured LED into yellow (turn left)
             Port2_Output(YELLOW);
             // Make a left turn at 500 duty for 300ms
-            Motor_LeftSimple(500,300);
+            Motor_LeftSimple(100,100);
+            Motor_LeftSimple(200,100);
+            Motor_LeftSimple(300,100);
+            Motor_LeftSimple(400,300);
             // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
@@ -184,7 +193,10 @@ void PORT4_IRQHandler(void){
             // Change the coloured LED into blue (turn right)
             Port2_Output(BLUE);
             // Make a left turn at 500 duty for 300ms
-            Motor_RightSimple(500,300);
+            Motor_RightSimple(100,100);
+            Motor_RightSimple(200,100);
+            Motor_RightSimple(300,100);
+            Motor_RightSimple(400,300);
             // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
@@ -204,7 +216,10 @@ void PORT4_IRQHandler(void){
             // Change the coloured LED into blue (turn right)
             Port2_Output(BLUE);
             // Make a left turn at 500 duty for 200ms
-            Motor_RightSimple(500,200);
+            Motor_RightSimple(100,100);
+            Motor_RightSimple(200,100);
+            Motor_RightSimple(300,100);
+            Motor_RightSimple(400,300);
             // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
@@ -225,7 +240,10 @@ void PORT4_IRQHandler(void){
             // Change the coloured LED into blue (turn right)
             Port2_Output(BLUE);
             // Make a left turn at 500 duty for 100ms
-            Motor_RightSimple(500,100);
+            Motor_RightSimple(100,100);
+            Motor_RightSimple(200,100);
+            Motor_RightSimple(300,100);
+            Motor_RightSimple(400,300);
             // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
@@ -263,38 +281,50 @@ uint8_t Bump_Read_Input(void){
 //                 Nested Vectored Interrupt Controller (NVIC) which used in interrupt method.
 
 
-void checkbumpswitch(uint8_t status)
+void checkbumpswitch(uint8_t status, uint8_t switch_1, uint8_t switch_2)
 {
     switch(status){
 
       //case 0x02: // Bump switch 1 (for interrupt vector)
         case 0x6D: // Bump 1
             Motor_StopSimple(1000);
+            if(switch_1 == 1 || switch_2 == 1)
+            {break;}
         break;
 
       //case 0x06: // Bump switch 2 (for interrupt vector)
         case 0xAD: // Bump 2
             Motor_StopSimple(1000);
+            if(switch_1 == 1 || switch_2 == 1)
+            {break;}
         break;
 
       //case 0x08: // Bump switch 3 (for interrupt vector)
         case 0xCD: // Bump 3
             Motor_StopSimple(1000);
+            if(switch_1 == 1 || switch_2 == 1)
+            {break;}
         break;
 
       //case 0x0C: // Bump switch 4 (for interrupt vector)
         case 0xE5: // Bump 4
             Motor_StopSimple(1000);
+            if(switch_1 == 1 || switch_2 == 1)
+            {break;}
         break;
 
       //case 0x0E: // Bump switch 5 (for interrupt vector)
         case 0xE9: // Bump 5
             Motor_StopSimple(1000);
+            if(switch_1 == 1 || switch_2 == 1)
+            {break;}
         break;
 
       //case 0x10: // Bump switch 6 (for interrupt vector)
         case 0xEC: // Bump 6
             Motor_StopSimple(1000);
+            if(switch_1 == 1 || switch_2 == 1)
+            {break;}
         break;
 
       case 0xED: // neither switch pressed
@@ -341,9 +371,9 @@ void Switch_Init(void){
 #define SW2IN ((*((volatile uint8_t *)(0x42098010)))^1) // input: switch SW2
 #define REDLED (*((volatile uint8_t *)(0x42098040)))    // output: red LED
 
-void main(void){
+int main(void){
     uint8_t status;
-    int mdoe;
+    int mdoe = 0;
 
     reset:
   Clock_Init48MHz();        // Initialise clock with 48MHz frequency
@@ -368,6 +398,7 @@ void main(void){
   // Run forever
   while(1){
 
+
       if(SW1IN == 1 && SW2IN != 1 )
       {
           mode = 1;
@@ -385,7 +416,7 @@ void main(void){
       }
 
 
-      if(mode != 1 && mode !=2)
+      if(mode == 0)
       {
           __no_operation();
           mode = 0;
@@ -396,21 +427,36 @@ void main(void){
           status = Bump_Read_Input();
           if (status == 0x6D || status == 0xAD || status == 0xCD || status == 0xE5 || status == 0xE9 || status == 0xEC)
           {
-              checkbumpswitch(status);
+              checkbumpswitch(status,SW1IN,SW2IN);
           }
-          Motor_ForwardSimple(900,1);
+
+          if (SW2IN == 1 && SW1IN == 1 )
+          {mode = 0;}
+          else if(SW2IN == 1)
+          {mdoe = 2;}
+
+          Motor_ForwardSimple(500,1);
       }
 
 
       else if(mode == 2){
           EnableInterrupts();
           status = Bump_Read_Input();
-          Motor_ForwardSimple(900,1);
+          Motor_ForwardSimple(300,1);
+
+          if (SW2IN == 1 && SW1IN == 1 )
+          {mode = 0;}
           //EnableInterrupts();       // Clear the I bit
       }
 
 
       }
+
+
+
+
+
+
 
 
       // while
