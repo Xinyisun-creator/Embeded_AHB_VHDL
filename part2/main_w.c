@@ -94,61 +94,61 @@ void PORT4_IRQHandler(void){
     // Interrupt Vector of Port4
       status = P4->IV;      // 2*(n+1) where n is highest priority, SXY: changed from 4 to 6(IV to VI)
 
-	  // The case used are the interrupt vector of P4->IV
-	  // For example, the bump switch 3 is connected to P4.3
-	  // (in other words, Port 4 at pin 3),
-	  // thus the status of case would be:
-	  // status = 2*(pin number + 1)
-	  //        = 2*(pin_3 + 1)
-	  //        = 2*(3 + 1)
-	  //        = 2*(4)
-	  //        = 8
-	  // in hex = 0x08
-	  // (*NOTE: in this code only bump switch 3 has been calculated,
-	  //         please figure out the other bump switches)
+      // The case used are the interrupt vector of P4->IV
+      // For example, the bump switch 3 is connected to P4.3
+      // (in other words, Port 4 at pin 3),
+      // thus the status of case would be:
+      // status = 2*(pin number + 1)
+      //        = 2*(pin_3 + 1)
+      //        = 2*(3 + 1)
+      //        = 2*(4)
+      //        = 8
+      // in hex = 0x08
+      // (*NOTE: in this code only bump switch 3 has been calculated,
+      //         please figure out the other bump switches)
 
       // SXY: for 6 bump, status = 2*(pin(6)+1) = 2*7 = 14.
       switch(status){
 
         case 0x02: // Bump switch 1
-		
+
             // Change the coloured LED into green (backward)
             Port2_Output(GREEN);
             // Move backward at 500 duty for 200ms
             Motor_BackwardSimple(500, 200);
-			// turn off the coloured LED
+            // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
             SysTick_Wait10ms(100);
-			// Change the coloured LED into yellow (turn left)
+            // Change the coloured LED into yellow (turn left)
             Port2_Output(YELLOW);
             // Make a left turn at 500 duty for 100ms
             Motor_LeftSimple(500,100);
-			// turn off the coloured LED
+            // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
             SysTick_Wait10ms(100);
-            
+
           break;
         case 0x06: // Bump switch 2
-		
+
             // Change the coloured LED into green (backward)
             Port2_Output(GREEN);
             // Move backward at 500 duty for 200ms
             Motor_BackwardSimple(500, 200);
-			// turn off the coloured LED
+            // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
             SysTick_Wait10ms(100);
-			// Change the coloured LED into yellow (turn left)
+            // Change the coloured LED into yellow (turn left)
             Port2_Output(YELLOW);
             // Make a left turn at 500 duty for 200ms
             Motor_LeftSimple(500,200);
-			// turn off the coloured LED
+            // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
             SysTick_Wait10ms(100);
-            
+
           break;
         case 0x08: // Bump switch 3
 
@@ -168,49 +168,49 @@ void PORT4_IRQHandler(void){
             Port2_Output(0);
             // Stop for 1000ms
             SysTick_Wait10ms(100);
-            
+
           break;
 
         case 0x0C: // Bump switch 4
-		
+
             // Change the coloured LED into green (backward)
             Port2_Output(GREEN);
             // Move backward at 500 duty for 200ms
             Motor_BackwardSimple(500, 200);
-			// turn off the coloured LED
+            // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
             SysTick_Wait10ms(100);
-			// Change the coloured LED into blue (turn right)
+            // Change the coloured LED into blue (turn right)
             Port2_Output(BLUE);
             // Make a left turn at 500 duty for 300ms
             Motor_RightSimple(500,300);
-			// turn off the coloured LED
+            // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
             SysTick_Wait10ms(100);
-			
+
           break;
         case 0x0E: // Bump switch 5
-		
+
             // Change the coloured LED into green (backward)
             Port2_Output(GREEN);
             // Move backward at 500 duty for 200ms
             Motor_BackwardSimple(500, 200);
-			// turn off the coloured LED
+            // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
             SysTick_Wait10ms(100);
-			// Change the coloured LED into blue (turn right)
+            // Change the coloured LED into blue (turn right)
             Port2_Output(BLUE);
             // Make a left turn at 500 duty for 200ms
             Motor_RightSimple(500,200);
-			// turn off the coloured LED
+            // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
             SysTick_Wait10ms(100);
-            
-			
+
+
           break;
         case 0x10: // Bump switch 6
 
@@ -218,19 +218,19 @@ void PORT4_IRQHandler(void){
             Port2_Output(GREEN);
             // Move backward at 500 duty for 200ms
             Motor_BackwardSimple(500, 200);
-			// turn off the coloured LED
+            // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
             SysTick_Wait10ms(100);
-			// Change the coloured LED into blue (turn right)
+            // Change the coloured LED into blue (turn right)
             Port2_Output(BLUE);
             // Make a left turn at 500 duty for 100ms
             Motor_RightSimple(500,100);
-			// turn off the coloured LED
+            // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
             SysTick_Wait10ms(100);
-            
+
           break;
 
         case 0xED: // none of the switches are pressed
@@ -341,20 +341,11 @@ void Switch_Init(void){
 #define SW2IN ((*((volatile uint8_t *)(0x42098010)))^1) // input: switch SW2
 #define REDLED (*((volatile uint8_t *)(0x42098040)))    // output: red LED
 
-void detect_switch(void){
-  int switch_en = 0;
-  if(SW1IN == 1){switch_en = 1;}
-
-  else if(SW2IN == 1){switch_en = 2;}
-
-  else{switch_en = 0;}
-  
-  return switch_en;
-}
-
-
-  int main(void){
+void main(void){
     uint8_t status;
+    int mdoe;
+
+    reset:
   Clock_Init48MHz();        // Initialise clock with 48MHz frequency
   Switch_Init();            // Initialise switches
   SysTick_Init();           // Initialise SysTick timer
@@ -369,59 +360,79 @@ void detect_switch(void){
   Port2_Output(WHITE);      // White is the colour to represent moving forward
   Motor_InitSimple();       // Initialise DC Motor
   Motor_StopSimple(100);    // Stop the motor on initial state
-  EnableInterrupts();       // Clear the I bit
-  int switch_en = 0;
+  DisableInterrupts();
+
+
+
 
   // Run forever
   while(1){
-    switch_en = detect_switch();
-    
-      switch(switch_en)
-      {      
-        default:
-          __no_operation();
-          break;
 
-        case 1 :
+      if(SW1IN == 1 && SW2IN != 1 )
+      {
+          mode = 1;
+      }
+
+      else if(SW2IN == 1 && SW1IN != 1 )
+      {
+          mode = 2;
+      }
+
+      else if(SW2IN == 1 && SW1IN == 1 ) // press 2 switch, then reset
+      {
+          mode = 0;
+          goto reset;
+      }
+
+
+      if(mode != 1 && mode !=2)
+      {
+          __no_operation();
+          mode = 0;
+      }
+
+      else if(mode == 1){
+          DisableInterrupts();
           status = Bump_Read_Input();
           if (status == 0x6D || status == 0xAD || status == 0xCD || status == 0xE5 || status == 0xE9 || status == 0xEC)
           {
               checkbumpswitch(status);
-              Motor_ForwardSimple(500,1);
-              switch_en = 0;
-              break;
           }
+          Motor_ForwardSimple(900,1);
+      }
 
-        case 2 :
+
+      else if(mode == 2){
+          EnableInterrupts();
           status = Bump_Read_Input();
-          PORT4_IRQHandler();
-          Motor_ForwardSimple(500,1);
-          break;
-          }
-          
+          Motor_ForwardSimple(900,1);
+          //EnableInterrupts();       // Clear the I bit
+      }
+
+
       }
 
 
       // while
 
-	// This section is used for Example 1 (seciton 5.8.1)
-    //__no_operation();		// the code will run without operation
+    // This section is used for Example 1 (seciton 5.8.1)
+    //__no_operation();     // the code will run without operation
 
 
     // This section is used for Example 2 (section 5.8.2)
-	/*
+    /*
         status = Bump_Read_Input();
         if (status == 0x6D || status == 0xAD || status == 0xCD || status == 0xE5 || status == 0xE9 || status == 0xEC) {
             checkbumpswitch(status);
         }
-	*/
-	
+    */
 
-	// This section is used for Example 3 (section 5.8.3)
-		// Move forward with 500 duty but can run with any number for time_ms,
-		// in this case, the robot will move infinitely because of the while loop,
-		// (although the time_ms used is 1)
-	/*
-		Motor_ForwardSimple(500, 1);
-	*/
+
+    // This section is used for Example 3 (section 5.8.3)
+        // Move forward with 500 duty but can run with any number for time_ms,
+        // in this case, the robot will move infinitely because of the while loop,
+        // (although the time_ms used is 1)
+    /*
+        Motor_ForwardSimple(500, 1);
+    */
   }
