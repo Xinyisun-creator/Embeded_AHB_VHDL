@@ -113,6 +113,7 @@ void PORT4_IRQHandler(uint8_t SW1IN,uint8_t SW2IN,int switch_en){
       switch(status){
 
         case 0x02: // Bump switch 1
+            // set stop time of interaction here 
 
             if(switch_en == 1)
             {
@@ -593,10 +594,6 @@ int main(void){
   Switch_Init();            // Initialise switches
   SysTick_Init();           // Initialise SysTick timer
   Port1_Init();             // Initialise P1.1 and P1.4 built-in buttons
-//  while(!SW2IN){            // Wait for SW2 switch
-//      SysTick_Wait10ms(10); // Wait here for every 100ms
-//      REDLED = !REDLED;     // The red LED is blinking waiting for command
-//  }
   REDLED = 0;               // Turn off the red LED
   BumpEdgeTrigger_Init();   // Initialise bump switches using edge interrupt
   Port2_Init();             // Initialise P2.2-P2.0 built-in LEDs
@@ -630,8 +627,8 @@ int main(void){
           if(count <= 5){mode = 1;}
           else{mode = 2;count=0;}
       }
-
-
+// if v = 0
+// set start time here
       for(i = 0; i <= 5; i++)
       {
           Port2_Output(GREEN);
@@ -686,6 +683,9 @@ int main(void){
 
           }// else if
       }
+      
+      // measure diff time here
+      // set a variable = 0, 1
 
 
       }
