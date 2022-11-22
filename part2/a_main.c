@@ -80,9 +80,10 @@ void BumpEdgeTrigger_Init(void){
 }
 
 // Uses P4IV IRQ handler to solve critical section/race
-void PORT4_IRQHandler(void){
+void PORT4_IRQHandler(uint8_t SW1IN,uint8_t SW2IN,int switch_en){
 
     uint8_t status;
+    int switch_reg;
 
     // The movement for coloured LED
     // WHITE:   Forward
@@ -92,8 +93,9 @@ void PORT4_IRQHandler(void){
     Port2_Output(0);        // turn off the coloured LED
 
     // Interrupt Vector of Port4
-      status = P4->VI;      // 2*(n+1) where n is highest priority, SXY: changed from 4 to 6(IV to VI)
-      switch_en = sw_detection(SW1IN,SW2IN);
+
+      status = P4->IV;      // 2*(n+1) where n is highest priority, SXY: changed from 4 to 6(IV to VI)
+      switch_en = sw_detection(SW1IN,SW2IN,switch_en);
 
       // The case used are the interrupt vector of P4->IV
       // For example, the bump switch 3 is connected to P4.3
@@ -112,6 +114,13 @@ void PORT4_IRQHandler(void){
       switch(status){
 
         case 0x02: // Bump switch 1
+            switch_reg = switch_en;
+            switch_en = sw_detection(SW1IN,SW2IN,switch_en);
+            if(switch_en != switch_reg)
+            {
+                break;
+            }
+
             if(switch_en == 1)
             {
               Motor_StopSimple(1000);
@@ -144,6 +153,13 @@ void PORT4_IRQHandler(void){
 
           break;
         case 0x06: // Bump switch 2
+            switch_reg = switch_en;
+            switch_en = sw_detection(SW1IN,SW2IN,switch_en);
+            if(switch_en != switch_reg)
+            {
+                break;
+            }
+
             if(switch_en == 1)
             {
               Motor_StopSimple(1000);
@@ -176,6 +192,13 @@ void PORT4_IRQHandler(void){
 
           break;
         case 0x08: // Bump switch 3
+            switch_reg = switch_en;
+            switch_en = sw_detection(SW1IN,SW2IN,switch_en);
+            if(switch_en != switch_reg)
+            {
+                break;
+            }
+
             if(switch_en == 1)
             {
               Motor_StopSimple(1000);
@@ -208,6 +231,13 @@ void PORT4_IRQHandler(void){
           break;
 
         case 0x0C: // Bump switch 4
+            switch_reg = switch_en;
+            switch_en = sw_detection(SW1IN,SW2IN,switch_en);
+            if(switch_en != switch_reg)
+            {
+                break;
+            }
+
             if(switch_en == 1)
             {
               Motor_StopSimple(1000);
@@ -240,6 +270,13 @@ void PORT4_IRQHandler(void){
 
           break;
         case 0x0E: // Bump switch 5
+            switch_reg = switch_en;
+            switch_en = sw_detection(SW1IN,SW2IN,switch_en);
+            if(switch_en != switch_reg)
+            {
+                break;
+            }
+
             if(switch_en == 1)
             {
               Motor_StopSimple(1000);
@@ -272,6 +309,13 @@ void PORT4_IRQHandler(void){
 
           break;
         case 0x10: // Bump switch 6
+            switch_reg = switch_en;
+            switch_en = sw_detection(SW1IN,SW2IN,switch_en);
+            if(switch_en != switch_reg)
+            {
+                break;
+            }
+
             if(switch_en == 1)
             {
               Motor_StopSimple(1000);
@@ -331,6 +375,7 @@ uint8_t Bump_Read_Input(void){
 //              1) the polling method is only useful for small program
 //              2) the input mask in switch case (for polling method) is DIFFERENT from the 
 //                 Nested Vectored Interrupt Controller (NVIC) which used in interrupt method.
+
 
 
 void checkbumpswitch(uint8_t status, uint8_t switch_en)
@@ -429,7 +474,7 @@ void checkbumpswitch(uint8_t status, uint8_t switch_en)
             // Stop for 1000ms
             SysTick_Wait10ms(100);
             }
-            
+
         break;
 
       //case 0x0C: // Bump switch 4 (for interrupt vector)
@@ -458,7 +503,7 @@ void checkbumpswitch(uint8_t status, uint8_t switch_en)
             // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
-            SysTick_Wait10ms(100);  
+            SysTick_Wait10ms(100);
             }
         break;
 
@@ -518,7 +563,7 @@ void checkbumpswitch(uint8_t status, uint8_t switch_en)
             // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
-            SysTick_Wait10ms(100); 
+            SysTick_Wait10ms(100);
             }
         break;
 
@@ -526,6 +571,7 @@ void checkbumpswitch(uint8_t status, uint8_t switch_en)
         break;
     }
 }
+
 
 void Port1_Init(void){
   P1->SEL0 &= ~0x01;
@@ -550,6 +596,29 @@ void Port2_Output(uint8_t data){
     P2->OUT = (P2->OUT&0xF8)|data;
 }
 
+
+int sw_detection(uint8_t SW1IN,uint8_t SW2IN,int switch_en)
+{
+  if(SW1IN == 1 && SW2IN != 1 )
+      {switch_en = 1;return switch_en;}
+
+  else if(SW2IN == 1 && SW1IN != 1 )
+      {switch_en = 2;return switch_en;}
+
+  else if(SW1IN != 1 && SW2IN != 1 )
+      {switch_en = switch_en;return switch_en;}
+
+}
+
+int mode_detction(uint8_t SW1IN,uint8_t SW2IN,int mode)
+{
+  if (SW2IN == 1 && SW1IN == 1 )
+  {mode = 0;}
+  else
+  {mode = mode;}
+  return mode;
+}
+
 void Switch_Init(void){
     // negative logic built-in Button 1 connected to P1.1
     // negative logic built-in Button 2 connected to P1.4
@@ -565,25 +634,6 @@ void Switch_Init(void){
 #define SW1IN ((*((volatile uint8_t *)(0x42098004)))^1) // input:switch SW1
 #define SW2IN ((*((volatile uint8_t *)(0x42098010)))^1) // input: switch SW2
 #define REDLED (*((volatile uint8_t *)(0x42098040)))    // output: red LED
-
-int sw_detection(uint8_t SW1IN,uint8_t SW1IN)
-{
-  if(SW1IN == 1 && SW2IN != 1 )
-      {switch_en = 1;return switch_en;}
-
-  else if(SW2IN == 1 && SW1IN != 1 )
-      {switch_en = 2;return switch_en;}
-  
-}
-
-int mode_detction(int mode)
-{
-  if (SW2IN == 1 && SW1IN == 1 )
-  {mode = 0;}
-  else
-  {mode = mode;}
-  return mode;
-}
 
 int main(void){
     uint8_t status;
@@ -633,7 +683,7 @@ int main(void){
       }
 
       Port2_Output(WHITE);
-      switch_en = sw_detection(SW1IN,SW2IN);
+      switch_en = sw_detection(SW1IN,SW2IN,switch_en);
 
       while(mode == 1)
       {
@@ -648,8 +698,8 @@ int main(void){
               if (status == 0x6D || status == 0xAD || status == 0xCD || status == 0xE5 || status == 0xE9 || status == 0xEC)
               {checkbumpswitch(status,switch_en);}
 
-              switch_en = sw_detection(SW1IN,SW2IN);
-              mode = mode_detction(mode);
+              switch_en = sw_detection(SW1IN,SW2IN,switch_en);
+              mode = mode_detction(SW1IN,SW2IN,mode);
 
               Motor_ForwardSimple(500,1);
           }// else if
@@ -665,10 +715,11 @@ int main(void){
           {
               EnableInterrupts();
               status = Bump_Read_Input();
+
               Motor_ForwardSimple(300,1);
-              
-              switch_en = sw_detection(SW1IN,SW2IN);
-              mode = mode_detction(mode);
+
+              switch_en = sw_detection(SW1IN,SW2IN,switch_en);
+              mode = mode_detction(SW1IN,SW2IN,mode);
 
           }// else if
       }
