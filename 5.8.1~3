@@ -1,0 +1,17 @@
+  //while(1) {
+      //5.8.1
+      //__no_operation();
+      //5.8.2
+      //status = Bump_Read_Input();
+        //      if (status == 0x6D || status == 0xAD || status == 0xCD || status == 0xE5 || status == 0xE9 || status == 0xEC) {
+          //        checkbumpswitch(status,1);
+            //  }
+      //5.8.3
+      // Move forward with 500 duty but can run with any number for time_ms,
+      // in this case, the robot will move infinitely because of the while loop,
+      // (although the time_ms used is 1)
+      //__no_operation();
+      //EnableInterrupts();
+      //Motor_ForwardSimple(500, 1);
+
+  //}
