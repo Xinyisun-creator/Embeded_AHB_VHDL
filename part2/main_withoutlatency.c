@@ -330,71 +330,94 @@ void checkbumpswitch(uint8_t status, uint8_t switch_en)
     switch(status){
 
       //case 0x02: // Bump switch 1 (for interrupt vector)
-        case 0x6D: // Bump 1
-            if(switch_en == 1)
-            {
-              Motor_StopSimple(1000);
-            }
+    case 0xEC: // Bump 1
+        if(switch_en == 1)
+        {
+          Motor_StopSimple(1000);
+        }
 
-            else if(switch_en == 2)
-            {
-            Port2_Output(GREEN);
-            // Move backward at 500 duty for 200ms
-            Motor_BackwardSimple(500, 200);
-            // turn off the coloured LED
-            Port2_Output(0);
-            // Stop for 1000ms
-            SysTick_Wait10ms(100);
-            // Change the coloured LED into yellow (turn left)
-            Port2_Output(YELLOW);
-            // Make a left turn at 500 duty for 100ms
-            Motor_LeftSimple(100,100);
-            Motor_LeftSimple(200,100);
-            Motor_LeftSimple(300,100);
-            Motor_LeftSimple(400,300);
-            // turn off the coloured LED
-            Port2_Output(0);
-            // Stop for 1000ms
-            SysTick_Wait10ms(100);
-            }
+        else if(switch_en == 2)
+        {
+        Port2_Output(GREEN);
+        // Move backward at 500 duty for 200ms
+        Motor_BackwardSimple(500, 200);
+        // turn off the coloured LED
+        Port2_Output(0);
+        // Stop for 1000ms
+        SysTick_Wait10ms(100);
+        // Change the coloured LED into yellow (turn left)
+        Port2_Output(YELLOW);
+        // Make a left turn at 500 duty for 100ms
+        Motor_LeftSimple(500,100);
+        // turn off the coloured LED
+        Port2_Output(0);
+        // Stop for 1000ms
+        SysTick_Wait10ms(100);
+        }
 
 
 
         break;
 
       //case 0x06: // Bump switch 2 (for interrupt vector)
-        case 0xAD: // Bump 2
-            if(switch_en == 1)
-            {
-              Motor_StopSimple(1000);
-            }
+    case 0xE9: // Bump 2
+        if(switch_en == 1)
+        {
+          Motor_StopSimple(1000);
+        }
 
-            else if(switch_en == 2)
-            {
-              // Change the coloured LED into green (backward)
-              Port2_Output(GREEN);
-              // Move backward at 500 duty for 200ms
-              Motor_BackwardSimple(500, 200);
-              // turn off the coloured LED
-              Port2_Output(0);
-              // Stop for 1000ms
-              SysTick_Wait10ms(100);
-              // Change the coloured LED into yellow (turn left)
-              Port2_Output(YELLOW);
-              // Make a left turn at 500 duty for 200ms
-              Motor_LeftSimple(100,100);
-              Motor_LeftSimple(200,100);
-              Motor_LeftSimple(300,100);
-              Motor_LeftSimple(400,300);
-              // turn off the coloured LED
-              Port2_Output(0);
-              // Stop for 1000ms
-              SysTick_Wait10ms(100);
-            }
-        break;
+        else if(switch_en == 2)
+        {
+          // Change the coloured LED into green (backward)
+          Port2_Output(GREEN);
+          // Move backward at 500 duty for 200ms
+          Motor_BackwardSimple(500, 200);
+          // turn off the coloured LED
+          Port2_Output(0);
+          // Stop for 1000ms
+          SysTick_Wait10ms(100);
+          // Change the coloured LED into yellow (turn left)
+          Port2_Output(YELLOW);
+          // Make a left turn at 500 duty for 200ms
+          Motor_LeftSimple(500,200);
+          // turn off the coloured LED
+          Port2_Output(0);
+          // Stop for 1000ms
+          SysTick_Wait10ms(100);
+        }
+    break;
 
+    //case 0x08: // Bump switch 3 (for interrupt vector)
+      case 0xE5: // Bump 3
+          if(switch_en == 1)
+          {
+            Motor_StopSimple(1000);
+          }
+
+          else if (switch_en == 2)
+          {
+          Port2_Output(GREEN);
+          // Move backward at 500 duty for 200ms
+          Motor_BackwardSimple(500, 200);
+          // turn off the coloured LED
+          Port2_Output(0);
+          // Stop for 1000ms
+          SysTick_Wait10ms(100);
+          // Change the coloured LED into yellow (turn left)
+          Port2_Output(YELLOW);
+          // Make a left turn at 500 duty for 300ms
+          Motor_LeftSimple(500,300);
+          // turn off the coloured LED
+          Port2_Output(0);
+          // Stop for 1000ms
+          SysTick_Wait10ms(100);
+          }
+
+      break;
+
+      //case 0x0C: // Bump switch 4 (for interrupt vector)
       //case 0x08: // Bump switch 3 (for interrupt vector)
-        case 0xCD: // Bump 3
+        case 0xE5: // Bump 3
             if(switch_en == 1)
             {
               Motor_StopSimple(1000);
@@ -412,50 +435,17 @@ void checkbumpswitch(uint8_t status, uint8_t switch_en)
             // Change the coloured LED into yellow (turn left)
             Port2_Output(YELLOW);
             // Make a left turn at 500 duty for 300ms
-            Motor_LeftSimple(100,100);
-            Motor_LeftSimple(200,100);
-            Motor_LeftSimple(300,100);
-            Motor_LeftSimple(400,300);
+            Motor_LeftSimple(500,300);
             // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
             SysTick_Wait10ms(100);
             }
 
-        break;
-
-      //case 0x0C: // Bump switch 4 (for interrupt vector)
-        case 0xE5: // Bump 4
-            if(switch_en == 1)
-            {
-              Motor_StopSimple(1000);
-            }
-
-            else if(switch_en == 2)
-            {
-            Port2_Output(GREEN);
-            // Move backward at 500 duty for 200ms
-            Motor_BackwardSimple(500, 200);
-            // turn off the coloured LED
-            Port2_Output(0);
-            // Stop for 1000ms
-            SysTick_Wait10ms(100);
-            // Change the coloured LED into blue (turn right)
-            Port2_Output(BLUE);
-            // Make a left turn at 500 duty for 300ms
-            Motor_RightSimple(100,100);
-            Motor_RightSimple(200,100);
-            Motor_RightSimple(300,100);
-            Motor_RightSimple(400,300);
-            // turn off the coloured LED
-            Port2_Output(0);
-            // Stop for 1000ms
-            SysTick_Wait10ms(100);
-            }
         break;
 
       //case 0x0E: // Bump switch 5 (for interrupt vector)
-        case 0xE9: // Bump 5
+        case 0xAD: // Bump 5
             if(switch_en == 1)
             {
               Motor_StopSimple(1000);
@@ -473,10 +463,7 @@ void checkbumpswitch(uint8_t status, uint8_t switch_en)
             // Change the coloured LED into blue (turn right)
             Port2_Output(BLUE);
             // Make a left turn at 500 duty for 200ms
-            Motor_RightSimple(100,100);
-            Motor_RightSimple(200,100);
-            Motor_RightSimple(300,100);
-            Motor_RightSimple(400,300);
+            Motor_RightSimple(500,200);
             // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
@@ -485,7 +472,7 @@ void checkbumpswitch(uint8_t status, uint8_t switch_en)
         break;
 
       //case 0x10: // Bump switch 6 (for interrupt vector)
-        case 0xEC: // Bump 6
+        case 0x6D: // Bump 6
             if(switch_en == 1)
             {
               Motor_StopSimple(1000);
@@ -503,10 +490,7 @@ void checkbumpswitch(uint8_t status, uint8_t switch_en)
             // Change the coloured LED into blue (turn right)
             Port2_Output(BLUE);
             // Make a left turn at 500 duty for 100ms
-            Motor_RightSimple(100,100);
-            Motor_RightSimple(200,100);
-            Motor_RightSimple(300,100);
-            Motor_RightSimple(400,300);
+            Motor_RightSimple(500,100);
             // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
