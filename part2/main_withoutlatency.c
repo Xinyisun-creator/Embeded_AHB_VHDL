@@ -82,6 +82,7 @@ void BumpEdgeTrigger_Init(void){
 }
 
 // Uses P4IV IRQ handler to solve critical section/race
+// ----------------------------------interrupt---------------------------------------
 void PORT4_IRQHandler(void){
 
     uint8_t status;
@@ -329,6 +330,7 @@ uint8_t Bump_Read_Input(void){
 //              1) the polling method is only useful for small program
 //              2) the input mask in switch case (for polling method) is DIFFERENT from the 
 //                 Nested Vectored Interrupt Controller (NVIC) which used in interrupt method.
+//-----------------------------------------------------------------------------------------
 
 
 //--------------------------- polling -------------------------------------------
@@ -599,73 +601,74 @@ int main(void){
    //------------------ identify modes and define each modes functions-------------------------
   // Run forever
   while(1){
-      Port2_Output(0);
+      Port2_Output(0); // turn off LEDs
 
       while(mode == 0) ///mode 0 for reset
-      {Port2_Output(0);
+       // initialised all variables
+      {Port2_Output(0); 
       uint8_t i = 0;
           count = 0;
 
           for(i = 0; i <= 10; i++)
           {
-              Port2_Output(RED);
-              SysTick_Wait10ms(5);
-              if(SW2IN == 1 && SW1IN == 1)
-                  {count = count+1;}
-              Port2_Output(0);
-              SysTick_Wait10ms(5);
+              Port2_Output(RED); // let user choose mode
+              SysTick_Wait10ms(5); // stop for 50 ms
+              if(SW2IN == 1 && SW1IN == 1) // switch 1 and 2 are pressed together
+                  {count = count+1;} 
+              Port2_Output(0); // turn off LEDs
+              SysTick_Wait10ms(5); // stop for 50 ms
           }
-          Port2_Output(0);
-          if(count <= 5){mode = 1;}
-          else{mode = 2;count=0;}
+          Port2_Output(0); // turn off LEDs
+          if(count <= 5){mode = 1;} // go to mode 1
+          else{mode = 2;count=0;} // go to mode 2
       }
 // if v = 0
 // set start time here
       for(i = 0; i <= 5; i++)
       {
-          Port2_Output(GREEN);
-          SysTick_Wait10ms(10);
+          Port2_Output(GREEN); //let user choose switch_en=1 or switch_en=2
+          SysTick_Wait10ms(10); // stop for 100 ms
           switch_en = sw_detection(SW1IN,SW2IN,switch_en);
-          SysTick_Wait10ms(10);
-          Port2_Output(0);
-      }
+          SysTick_Wait10ms(10); // stop for 100 ms
+          Port2_Output(0); // turn off LEDs
+      } 
 
       while(mode == 1)  //mode 1 for Interrupts
       {
-          Port2_Output(BLUE);
-          if(switch_en == 0)
+          Port2_Output(BLUE); //motor turn right
+          if(switch_en == 0) 
           {__no_operation();mode = 0;}
 
-          else if(switch_en == 1 ||switch_en == 2 )
+          else if(switch_en == 1 ||switch_en == 2 ) // switch_en equal to 1 or 2
           {
-              DisableInterrupts();
-              status = Bump_Read_Input();
+              DisableInterrupts(); // disable the interrupt function
+              status = Bump_Read_Input(); // read the input of bumps
 
               for(i = 0; i <= 100; i++)
               {
                   __no_operation(); // 67 exp2 latency sta
 
-                  status = Bump_Read_Input();
-                  if (status == 0x6D || status == 0xAD || status == 0xCD || status == 0xE5 || status == 0xE9 || status == 0xEC)
+                  status = Bump_Read_Input(); // read the input of bumps
+                  if (status == 0x6D || status == 0xAD || status == 0xCD || status == 0xE5 || status == 0xE9 || status == 0xEC) //each bump
                   {checkbumpswitch(status,switch_en);}
 
                   switch_en = sw_detection(SW1IN,SW2IN,switch_en); // 67 exp2 latency sto
                   mode = mode_detction(SW1IN,SW2IN,mode);
 
-                  Motor_ForwardSimple(500,1);
+                  Motor_ForwardSimple(500,1);  // Move forward at 500 duty for 1 ms
 
               }
 
               for(i = 0; i <=100 ; i++)
               {
-                  status = Bump_Read_Input();
-                  if (status == 0x6D || status == 0xAD || status == 0xCD || status == 0xE5 || status == 0xE9 || status == 0xEC)
+                  status = Bump_Read_Input(); // read the input of bumps
+                  if (status == 0x6D || status == 0xAD || status == 0xCD || status == 0xE5 || status == 0xE9 || status == 0xEC) //each bump
                   {checkbumpswitch(status,switch_en);}
 
                   switch_en = sw_detection(SW1IN,SW2IN,switch_en);
                   mode = mode_detction(SW1IN,SW2IN,mode);
 
-                  Motor_RightSimple(500,1);
+                  Motor_RightSimple(500,1); // Move right at 500 duty for 1 ms
 
               }
 
@@ -689,20 +692,20 @@ int main(void){
           if(switch_en == 0)
           {__no_operation();mode = 0;}
 
-          else if(switch_en == 1 ||switch_en == 2 )
+          else if(switch_en == 1 ||switch_en == 2 ) // switch_en equal to 1 or 2
           {
               if(SW1IN != 1 && SW2IN != 2 )
               {
-                  EnableInterrupts();
-                  Motor_ForwardSimple(500,300);
-                  Motor_RightSimple(500,200);
+                  EnableInterrupts(); // enable the interrupt function
+                  Motor_ForwardSimple(500,300); // Move forward at 500 duty for 300 ms
+                  Motor_RightSimple(500,200); // Move right at 500 duty for 200 ms
               }
 
               else
               {
-                  DisableInterrupts();
-                  switch_en = sw_detection(SW1IN,SW2IN,switch_en);
-                  mode = mode_detction(SW1IN,SW2IN,mode);
+                  DisableInterrupts(); // disable the interrupt function
+                  switch_en = sw_detection(SW1IN,SW2IN,switch_en); // read switch 
+                  mode = mode_detction(SW1IN,SW2IN,mode); // read mode result
               }
 
           }// else if
