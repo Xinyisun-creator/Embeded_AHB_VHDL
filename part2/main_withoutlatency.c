@@ -58,8 +58,8 @@ policies, either expressed or implied, of the FreeBSD Project.
 #define SKYBLUE   0x06
 #define WHITE     0x07
 
-uint8_t mode = 0;
-uint8_t switch_en = 0;
+uint8_t mode = 0; //reset
+uint8_t switch_en = 0; // reset
 
 
 // Initialize Bump sensors using interrupt
@@ -111,17 +111,17 @@ void PORT4_IRQHandler(void){
       //         please figure out the other bump switches)
 
       // SXY: for 6 bump, status = 2*(pin(6)+1) = 2*7 = 14.
+   
+   // ------------------ identify functions of each bump switchs-------------------------
       switch(status){
 
         case 0x02: // Bump switch 1
-            // set stop time of interaction here
-
             if(switch_en == 1)
             {
-              Motor_StopSimple(1000);
+               // set stop time of interaction here
+              Motor_StopSimple(1000); // stop for 1000 ms.
               break;
             }
-
             else if (switch_en == 2)
             {
             // Change the coloured LED into green (backward)
@@ -131,7 +131,7 @@ void PORT4_IRQHandler(void){
             // turn off the coloured LED
             Port2_Output(0);
             // Stop for 1000ms
-            SysTick_Wait10ms(100);
+            SysTick_Wait10ms(100); 
             // Change the coloured LED into yellow (turn left)
             Port2_Output(YELLOW);
             // Make a left turn at 500 duty for 100ms
@@ -142,13 +142,14 @@ void PORT4_IRQHandler(void){
             SysTick_Wait10ms(100);
             break;
             }
-
           break;
+            
         case 0x06: // Bump switch 2
 
             if(switch_en == 1)
             {
-              Motor_StopSimple(1000);
+             // set stop time of interaction here
+              Motor_StopSimple(1000); // stop for 1000 ms.
               break;
             }
 
@@ -178,7 +179,8 @@ void PORT4_IRQHandler(void){
 
             if(switch_en == 1)
             {
-              Motor_StopSimple(1000);
+               // set stop time of interaction here
+              Motor_StopSimple(1000); // stop for 1000 ms.
               break;
             }
 
@@ -208,7 +210,8 @@ void PORT4_IRQHandler(void){
 
             if(switch_en == 1)
             {
-              Motor_StopSimple(1000);
+              // set stop time of interaction here
+              Motor_StopSimple(1000); // stop for 1000 ms.
               break;
             }
 
@@ -238,7 +241,8 @@ void PORT4_IRQHandler(void){
 
             if(switch_en == 1)
             {
-              Motor_StopSimple(1000);
+               // set stop time of interaction here
+              Motor_StopSimple(1000); // stop for 1000 ms.
               break;
             }
 
@@ -268,7 +272,8 @@ void PORT4_IRQHandler(void){
 
             if(switch_en == 1)
             {
-              Motor_StopSimple(1000);
+               // set stop time of interaction here
+              Motor_StopSimple(1000); // stop for 1000 ms.
               break;
             }
 
@@ -300,6 +305,8 @@ void PORT4_IRQHandler(void){
 
       P4->IFG &= ~0xED; // clear flag
 }
+// -----------------------------------------------------------------------------
+
 
 // Read current state of 6 switches
 // Returns a 6-bit positive logic result (0 to 63)
@@ -324,19 +331,19 @@ uint8_t Bump_Read_Input(void){
 //                 Nested Vectored Interrupt Controller (NVIC) which used in interrupt method.
 
 
-
+//--------------------------- polling -------------------------------------------
 void checkbumpswitch(uint8_t status, uint8_t switch_en)
 {
     switch(status){
 
       //case 0x02: // Bump switch 1 (for interrupt vector)
     case 0xEC: // Bump 1
-        if(switch_en == 1)
+        if(switch_en == 1) // motor stop when bump be pressed 
         {
           Motor_StopSimple(1000);
         }
 
-        else if(switch_en == 2)
+        else if(switch_en == 2) // motor change direction when bump be pressed
         {
         Port2_Output(GREEN);
         // Move backward at 500 duty for 200ms
@@ -361,12 +368,12 @@ void checkbumpswitch(uint8_t status, uint8_t switch_en)
 
       //case 0x06: // Bump switch 2 (for interrupt vector)
     case 0xE9: // Bump 2
-        if(switch_en == 1)
+        if(switch_en == 1) // motor stop when bump be pressed 
         {
           Motor_StopSimple(1000);
         }
 
-        else if(switch_en == 2)
+        else if(switch_en == 2) // motor change direction when bump be pressed
         {
           // Change the coloured LED into green (backward)
           Port2_Output(GREEN);
@@ -389,12 +396,12 @@ void checkbumpswitch(uint8_t status, uint8_t switch_en)
 
     //case 0x08: // Bump switch 3 (for interrupt vector)
       case 0xE5: // Bump 3
-          if(switch_en == 1)
+          if(switch_en == 1) // motor stop when bump be pressed 
           {
-            Motor_StopSimple(1000);
+            Motor_StopSimple(1000); 
           }
 
-          else if (switch_en == 2)
+          else if (switch_en == 2) // motor change direction when bump be pressed
           {
           Port2_Output(GREEN);
           // Move backward at 500 duty for 200ms
@@ -418,12 +425,12 @@ void checkbumpswitch(uint8_t status, uint8_t switch_en)
       //case 0x0C: // Bump switch 4 (for interrupt vector)
       //case 0x08: // Bump switch 3 (for interrupt vector)
         case 0xE5: // Bump 3
-            if(switch_en == 1)
+            if(switch_en == 1) // motor stop when bump be pressed 
             {
               Motor_StopSimple(1000);
             }
 
-            else if (switch_en == 2)
+            else if (switch_en == 2) // motor change direction when bump be pressed
             {
             Port2_Output(GREEN);
             // Move backward at 500 duty for 200ms
@@ -446,12 +453,12 @@ void checkbumpswitch(uint8_t status, uint8_t switch_en)
 
       //case 0x0E: // Bump switch 5 (for interrupt vector)
         case 0xAD: // Bump 5
-            if(switch_en == 1)
+            if(switch_en == 1) // motor stop when bump be pressed 
             {
               Motor_StopSimple(1000);
             }
 
-            else if(switch_en == 2)
+            else if(switch_en == 2) // motor change direction when bump be pressed
             {
             Port2_Output(GREEN);
             // Move backward at 500 duty for 200ms
@@ -473,12 +480,12 @@ void checkbumpswitch(uint8_t status, uint8_t switch_en)
 
       //case 0x10: // Bump switch 6 (for interrupt vector)
         case 0x6D: // Bump 6
-            if(switch_en == 1)
+            if(switch_en == 1) // motor stop when bump be pressed 
             {
               Motor_StopSimple(1000);
             }
 
-            else if(switch_en == 2)
+            else if(switch_en == 2) // motor change direction when bump be pressed
             {
             Port2_Output(GREEN);
             // Move backward at 500 duty for 200ms
@@ -502,6 +509,7 @@ void checkbumpswitch(uint8_t status, uint8_t switch_en)
         break;
     }
 }
+//-------------------------------------------------------------------------------------
 
 
 void Port1_Init(void){
@@ -531,19 +539,19 @@ void Port2_Output(uint8_t data){
 int sw_detection(uint8_t SW1IN,uint8_t SW2IN,int switch_en)
 {
   if(SW1IN == 1 && SW2IN != 1 )
-      {switch_en = 1;return switch_en;}
+      {switch_en = 1;return switch_en;} // in this case, motor stop
 
-  else if(SW2IN == 1 && SW1IN != 1 )
-      {switch_en = 2;return switch_en;}
+  else if(SW2IN == 1 && SW1IN != 1 ) 
+      {switch_en = 2;return switch_en;} // in this case, motor change direction
 
   else if(SW1IN != 1 && SW2IN != 1 )
-      {switch_en = switch_en;return switch_en;}
+      {switch_en = switch_en;return switch_en;} // in this case, motor status not change
 
 }
 
 int mode_detction(uint8_t SW1IN,uint8_t SW2IN,int mode)
 {
-  if (SW2IN == 1 && SW1IN == 1 )
+  if (SW2IN == 1 && SW1IN == 1 ) // press both switch 1 and 2 to reset the motor
   {mode = 0;}
   else
   {mode = mode;}
@@ -572,8 +580,8 @@ int main(void){
     uint8_t count=0;
     uint8_t i;
 
+   //initialise 
   reset:
-
   Clock_Init48MHz();        // Initialise clock with 48MHz frequency
   Switch_Init();            // Initialise switches
   SysTick_Init();           // Initialise SysTick timer
@@ -584,11 +592,11 @@ int main(void){
   Port2_Output(WHITE);      // White is the colour to represent moving forward
   Motor_InitSimple();       // Initialise DC Motor
   Motor_StopSimple(100);    // Stop the motor on initial state
-  DisableInterrupts();
+  DisableInterrupts();      
 
 
 
-
+   //------------------ identify modes and define each modes functions-------------------------
   // Run forever
   while(1){
       Port2_Output(0);
@@ -661,9 +669,6 @@ int main(void){
 
               }
 
-
-
-
 //              DisableInterrupts();
 //              status = Bump_Read_Input();
 //              if (status == 0x6D || status == 0xAD || status == 0xCD || status == 0xE5 || status == 0xE9 || status == 0xEC)
@@ -710,7 +715,7 @@ int main(void){
       }
 
 
-
+//-------------------------------------------------------------------------------------------
 
 
 
