@@ -593,7 +593,7 @@ int main(void){
   while(1){
       Port2_Output(0);
 
-      while(mode == 0)
+      while(mode == 0) ///mode 0 for reset
       {Port2_Output(0);
       uint8_t i = 0;
           count = 0;
@@ -622,7 +622,7 @@ int main(void){
           Port2_Output(0);
       }
 
-      while(mode == 1)
+      while(mode == 1)  //mode 1 for Interrupts
       {
           Port2_Output(BLUE);
           if(switch_en == 0)
@@ -679,7 +679,7 @@ int main(void){
 
       }//if mode == 1
 
-      while(mode == 2)
+      while(mode == 2) //mode 2 for polling
       {
           if(switch_en == 0)
           {__no_operation();mode = 0;}
