@@ -51,15 +51,15 @@
 
 
 // TODO: include the songFile header file
-#include "songFile.h"
+#include "./inc/songFile.h"
 // TODO: include the dcMotor header file
-#include "dcMotor.h"
+#include "./inc/dcMotor.h"
 // TODO: include the bumpSwitch header file
-#include "bumpSwitch.c"
+#include "./inc/bumpSwitch.c"
 // TODO: include the outputLED header file
-#include "outputLED.h"
+#include "./inc/outputLED.h"
 // TODO: include the SysTick header file
-#include "SysTick.h"
+#include "./inc/SysTick.h"
 // TODO: bit-banded addresses positive logic of input switch S1
 #define SW1IN ((*((volatile uint8_t *)(0x42098004)))^1) // input:switch SW1
 // TODO: bit-banded addresses positive logic of input switch S2
@@ -81,21 +81,18 @@ static void Switch_Init(void){
 };
 
 // a static void function for a task called "taskMasterThread"
-static void taskMasterThread( void *pvParameters ){
-
+static void taskMasterThread( void *pvParameters );
 // TODO: declare a static void function for a task called "taskBumpSwitch"
-xTaskCreate( taskBumpSwitch, "taskBumpSwitch", 128, &ucParameterToPass, l, &xHandleBumpSwitch);
+static void taskBumpSwitch(void);
 // TODO: declare a static void function for a task called "taskPlaySong"
-xTaskCreate(taskPlaySong,"taskPlaySong",128,&ucParameterToPass,&xHandlePlaySong);
+static void taskPlaySong(void);
 // TODO: declare a static void function for a task called "taskdcMotor"
-xTaskCreate(taskdcMotor);
+static void taskdcMotor(void);
 // TODO: declare a static void function for a task called "taskReadInputSwitch"
-xTaskCreate(taskReadInputSwitch);
+static void taskReadInputSwitch(*pvParameters);
 // TODO: declare a static void function for a task called "taskdcMotor"
-xTaskCreate(taskdcMotor);
+static void taskdcMotor(void);
 
-
-};
 
 /*
  * Called by main() to create the main program application
@@ -110,13 +107,12 @@ static void prvConfigureClocks( void );
 
 // declare an identifier of task handler called "taskHandle_BlinkRedLED"
 xTaskHandle taskHandle_BlinkRedLED;
-
 // TODO: declare an identifier of task handler called "taskHandle_BumpSwitch"
-
+xTaskHandle taskHandle_BumpSwitch;
 // TODO: declare an identifier of task handler called "taskHandle_PlaySong"
-
+xTaskHandle taskHandle_PlaySong;
 // TODO: declare an identifier of task handler called "taskHandle_dcMotor"
-
+xTaskHandle taskHandle_dcMotor;
 // TODO: declare an identifier of task handler called "taskHandle_InputSwitch"
 
 // TODO: declare an identifier of task handler called "taskHandle_OutputLED"
@@ -136,6 +132,17 @@ void main_program( void )
     // TIP: to create a task, use xTaskCreate in FreeRTOS
     // URL : https://www.freertos.org/a00125.html
     //////////////////////////////////////////////////////
+    xTaskCreate(taskBumpSwitch,
+                "taskBumpSwitch",
+                128,
+                NULL,
+                1,
+                &xHandleBumpSwitch);
+
+    xTaskCreate(taskPlaySong,"taskPlaySong",128,NULL,&xHandlePlaySong);
+    xTaskCreate(taskdcMotor);
+    xTaskCreate(taskReadInputSwitch);
+    xTaskCreate(taskdcMotor);
 
         // TODO: Create a task that has these parameters=
         //       pvTaskCode: taskMasterThread
@@ -245,24 +252,15 @@ void vPreSleepProcessing( uint32_t ulExpectedIdleTime ){}
 /*--------------------------- END ---------------------------------*/
 /*-----------------------------------------------------------------*/
 
-static void Switch_Init(void){
-    // negative logic built-in Button 1 connected to P1.1
-    // negative logic built-in Button 2 connected to P1.4
-    P1->SEL0 &= ~0x12;
-    P1->SEL1 &= ~0x12;      // configure P1.4 and P1.1 as GPIO
-    P1->DIR &= ~0x12;       // make P1.4 and P1.1 in
-    P1->REN |= 0x12;        // enable pull resistors on P1.4 and P1.1
-    P1->OUT |= 0x12;        // P1.4 and P1.1 are pull-up
-}
+static void Switch_Init(void);
 // a static void function for taskReadInputSwitch
 static void taskReadInputSwitch( void *pvParameters ){
-
     char i_SW1=0;
     int i;
 
-    for( ;; )
+    while(1) //(;;)
     {
-        if (SW1IN == 1) {
+        if (SW1IN == 1){
             i_SW1 ^= 1;                 // toggle the variable i_SW1
             for (i=0; i<1000000; i++);  // this waiting loop is used
                                         // to prevent the switch bounce.
@@ -279,14 +277,15 @@ static void taskReadInputSwitch( void *pvParameters ){
         ///////////////////////////////////////////////////////////
 
         if (i_SW1 == 1) {
-            //REDLED = 1;     // turn on the red LED
+            REDLED = 1;     // turn on the red LED
+            vTaskSuspend();
             // TODO: suspend the task taskHandle_PlaySong
 
         }
         else {
-            //REDLED = 0;     // turn off the red LED
+            REDLED = 0;     // turn off the red LED
+            vTaskResume();
             // TODO: resume the task taskHandle_PlaySong
-
         }
 
     }
@@ -294,12 +293,14 @@ static void taskReadInputSwitch( void *pvParameters ){
 
 // TODO: create a static void function for taskPlaySong
 static void taskPlaySong(void){
+    // TODO: initialise the song
+    init_song_pwm();
+    // TODO: play the song's function and run forever
+    while(1){
+      play_song();
+    }
 
 };
-
-    // TODO: initialise the song
-
-    // TODO: play the song's function and run forever
 
 // TODO: create a static void function for taskBumpSwitch
 static void taskBumpSwitch(void){
@@ -365,13 +366,17 @@ static void taskMasterThread( void *pvParameters )
 }
 
 // TODO: create a static void function for taskdcMotor
-
+static void taskdcMotor(void){
     // TODO: initialise the DC Motor
-
+    dcMotor_Init();
     // TODO: use a polling that continuously read from the bumpSwitch_status,
     //       and run this forever in a while loop.
     //       use dcMotor_response and bumpSwitch_status for the parameter
-
+    while(1){
+        if (bumpSwitch_status == 0x6D || bumpSwitch_status == 0xAD || bumpSwitch_status == 0xCD || bumpSwitch_status == 0xE5 || bumpSwitch_status == 0xE9 || bumpSwitch_status == 0xEC)
+        {dcMotor_response(bumpSwitch_status);}
+    }
+};
 
 
 
