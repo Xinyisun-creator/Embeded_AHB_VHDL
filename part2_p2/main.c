@@ -132,17 +132,6 @@ void main_program( void )
     // TIP: to create a task, use xTaskCreate in FreeRTOS
     // URL : https://www.freertos.org/a00125.html
     //////////////////////////////////////////////////////
-    xTaskCreate(taskBumpSwitch,
-                "taskBumpSwitch",
-                128,
-                NULL,
-                1,
-                &xHandleBumpSwitch);
-
-    xTaskCreate(taskPlaySong,"taskPlaySong",128,NULL,&xHandlePlaySong);
-    xTaskCreate(taskdcMotor);
-    xTaskCreate(taskReadInputSwitch);
-    xTaskCreate(taskdcMotor);
 
         // TODO: Create a task that has these parameters=
         //       pvTaskCode: taskMasterThread
@@ -151,6 +140,13 @@ void main_program( void )
         //       pvParameters: NULL
         //       uxPriority: 2
         //       pxCreatedTask: taskHandle_BlinkRedLED
+        xTaskCreate(
+            taskMasterThread,
+            "taskT",
+            128,
+            NULL,
+            2,
+            &taskHandle_BlinkRedLED);
 
         // TODO: Create a task that has these parameters=
         //       pvTaskCode: taskBumpSwitch
@@ -159,6 +155,14 @@ void main_program( void )
         //       pvParameters: NULL
         //       uxPriority: 1
         //       pxCreatedTask: taskHandle_BumpSwitch
+        xTaskCreate(
+            taskBumpSwitch,
+            "taskB",
+            128,
+            NULL,
+            1,
+            &taskHandle_BumpSwitch
+        );
 
         // TODO: Create a task that has these parameters=
         //       pvTaskCode: taskPlaySong
@@ -167,6 +171,13 @@ void main_program( void )
         //       pvParameters: NULL
         //       uxPriority: 1
         //       pxCreatedTask: taskHandle_PlaySong
+        xTaskCreate(
+            taskPlaySong,
+            "taskS",
+            128,
+            NULL,
+            1,
+            &taskHandle_PlaySong);
 
         // TODO: Create a task that has these parameters=
         //       pvTaskCode: taskdcMotor
@@ -175,6 +186,14 @@ void main_program( void )
         //       pvParameters: NULL
         //       uxPriority: 1
         //       pxCreatedTask: taskHandle_dcMotor
+        xTaskCreate(
+            taskdcMotor,
+            "taskM",
+            128,
+            NULL,
+            1,
+            &taskHandle_dcMotor
+        );
 
         // TODO: Create a task that has these parameters=
         //       pvTaskCode: taskReadInputSwitch
@@ -183,6 +202,14 @@ void main_program( void )
         //       pvParameters: NULL
         //       uxPriority: 1
         //       pxCreatedTask: taskHandle_InputSwitch
+        xTaskCreate(
+            taskReadInputSwitch,
+            "taskR",
+            128,
+            NULL,
+            1,
+            &taskHandle_InputSwitch
+        );
 
         // TODO: Create a task that has these parameters=
         //       pvTaskCode: taskDisplayOutputLED
@@ -191,6 +218,14 @@ void main_program( void )
         //       pvParameters: NULL
         //       uxPriority: 1
         //       pxCreatedTask: taskHandle_OutputLED
+        xTaskCreate(
+            taskDisplayOutputLED,
+            "taskD",
+            128,
+            NULL,
+            1,
+            &taskHandle_OutputLED
+        );
 
         //////////////////////////////////////////////////////////////////
         // TIP: to start a scheduler, use vTaskStartScheduler in FreeRTOS
@@ -198,6 +233,7 @@ void main_program( void )
         //////////////////////////////////////////////////////////////////
 
         // TODO: start the scheduler
+        vTaskStartScheduler();
 
 
     /* INFO: If everything is fine, the scheduler will now be running,
@@ -278,13 +314,13 @@ static void taskReadInputSwitch( void *pvParameters ){
 
         if (i_SW1 == 1) {
             REDLED = 1;     // turn on the red LED
-            vTaskSuspend();
+            vTaskSuspend(taskHandle_PlaySong);
             // TODO: suspend the task taskHandle_PlaySong
 
         }
         else {
             REDLED = 0;     // turn off the red LED
-            vTaskResume();
+            vTaskResume(taskHandle_PlaySong);
             // TODO: resume the task taskHandle_PlaySong
         }
 
@@ -344,7 +380,13 @@ static void taskMasterThread( void *pvParameters )
 
     while(!SW2IN){                  // Wait for SW2 switch
         for (i=0; i<1000000; i++);  // Wait here waiting for command
-        //REDLED = !REDLED;           // The red LED is blinking
+        REDLED = !REDLED;           // The red LED is blinking
+    }
+
+    while(SW2IN){
+        //
+        REDLED = 0;
+        vTaskSuspend(taskHandle_BlinkRedLED);
     }
 
     // TODO: Turn off the RED LED, we no longer need that.
@@ -377,6 +419,4 @@ static void taskdcMotor(void){
         {dcMotor_response(bumpSwitch_status);}
     }
 };
-
-
 
