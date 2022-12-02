@@ -55,7 +55,7 @@
 // TODO: include the dcMotor header file
 #include "./inc/dcMotor.h"
 // TODO: include the bumpSwitch header file
-#include "./inc/bumpSwitch.c"
+#include "./inc/bumpSwitch.h"
 // TODO: include the outputLED header file
 #include "./inc/outputLED.h"
 // TODO: include the SysTick header file
@@ -83,15 +83,16 @@ static void Switch_Init(void){
 // a static void function for a task called "taskMasterThread"
 static void taskMasterThread( void *pvParameters );
 // TODO: declare a static void function for a task called "taskBumpSwitch"
-static void taskBumpSwitch(void);
+static void taskBumpSwitch(void *pvParameters);
 // TODO: declare a static void function for a task called "taskPlaySong"
-static void taskPlaySong(void);
+static void taskPlaySong(void *pvParameters);
 // TODO: declare a static void function for a task called "taskdcMotor"
-static void taskdcMotor(void);
+static void taskdcMotor(void *pvParameters);
 // TODO: declare a static void function for a task called "taskReadInputSwitch"
-static void taskReadInputSwitch(*pvParameters);
+static void taskReadInputSwitch(void *pvParameters); //*pvParameters
 // TODO: declare a static void function for a task called "taskdcMotor"
-static void taskdcMotor(void);
+static void taskdcMotor(void *pvParameters);
+static void taskDisplayOutputLED(void *pvParameters);
 
 
 /*
@@ -114,8 +115,9 @@ xTaskHandle taskHandle_PlaySong;
 // TODO: declare an identifier of task handler called "taskHandle_dcMotor"
 xTaskHandle taskHandle_dcMotor;
 // TODO: declare an identifier of task handler called "taskHandle_InputSwitch"
-
+xTaskHandle taskHandle_InputSwitch;
 // TODO: declare an identifier of task handler called "taskHandle_OutputLED"
+xTaskHandle taskHandle_OutputLED;
 
 void main_program(void);
 
@@ -125,8 +127,10 @@ void main_program( void )
     prvConfigureClocks();
 
     // TODO: initialise the switch
+    Switch_Init();
 
     // TODO: initialise systick timer
+    SysTick_Init();
 
     //////////////////////////////////////////////////////
     // TIP: to create a task, use xTaskCreate in FreeRTOS
@@ -288,9 +292,11 @@ void vPreSleepProcessing( uint32_t ulExpectedIdleTime ){}
 /*--------------------------- END ---------------------------------*/
 /*-----------------------------------------------------------------*/
 
-static void Switch_Init(void);
+static void Switch_Init(void );
+
 // a static void function for taskReadInputSwitch
-static void taskReadInputSwitch( void *pvParameters ){
+// static void taskReadInputSwitch( void *pvParameters )
+static void taskReadInputSwitch(void *pvParameters){
     char i_SW1=0;
     int i;
 
@@ -328,7 +334,7 @@ static void taskReadInputSwitch( void *pvParameters ){
 }
 
 // TODO: create a static void function for taskPlaySong
-static void taskPlaySong(void){
+static void taskPlaySong(void *pvParameters){
     // TODO: initialise the song
     init_song_pwm();
     // TODO: play the song's function and run forever
@@ -339,7 +345,7 @@ static void taskPlaySong(void){
 };
 
 // TODO: create a static void function for taskBumpSwitch
-static void taskBumpSwitch(void){
+static void taskBumpSwitch(void *pvParameters){
     // TODO: initialise bump switches
     uint8_t i = 0;
     BumpSwitch_Init();
@@ -358,15 +364,15 @@ static void taskBumpSwitch(void){
 }
 
 
-// TODO: create a static void function for taskDisplayOutputLED
+static void taskDisplayOutputLED(void *pvParameters){
+    // TODO: create a static void function for taskDisplayOutputLED
+    RedLED_Init();
+        while(1) // uncomment this for(;;)
+        { // uncomment this
+            outputLED_response(bumpSwitch_status);
+        } // uncomment this
+}
 
-    //for( ;; ) // uncomment this
-    //{ // uncomment this
-
-        // TODO: use outputLED_response as the function and
-        //       use bumpSwitch_status as the parameter
-
-    //} // uncomment this
 
 // a static void function for taskMasterThread
 static void taskMasterThread( void *pvParameters )
@@ -374,7 +380,7 @@ static void taskMasterThread( void *pvParameters )
     int i;
 
     // TODO: initialise the color LED
-
+    ColorLED_Init();
     // initialise the red LED
     RedLED_Init();
 
@@ -408,7 +414,7 @@ static void taskMasterThread( void *pvParameters )
 }
 
 // TODO: create a static void function for taskdcMotor
-static void taskdcMotor(void){
+static void taskdcMotor(void *pvParameters){
     // TODO: initialise the DC Motor
     dcMotor_Init();
     // TODO: use a polling that continuously read from the bumpSwitch_status,
@@ -419,4 +425,3 @@ static void taskdcMotor(void){
         {dcMotor_response(bumpSwitch_status);}
     }
 };
-
