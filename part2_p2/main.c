@@ -356,7 +356,7 @@ static void taskBumpSwitch(void *pvParameters){
     //       and return it to the "bumpSwitch_status" variable.
     //       Note that the bumpSwitch_status is a global variable,
     //       so do not declare it again here locally.
-    for(i=0;i<=100000;i++)
+    while(1)
     {bumpSwitch_status = Bump_Read_Input();
          //TODO: use bumpSwitch_status as the variable and
                //use Bump_Read_Input to read the input
@@ -367,10 +367,10 @@ static void taskBumpSwitch(void *pvParameters){
 static void taskDisplayOutputLED(void *pvParameters){
     // TODO: create a static void function for taskDisplayOutputLED
     RedLED_Init();
-        while(1) // uncomment this for(;;)
-        { // uncomment this
+    while(1)
+        {
             outputLED_response(bumpSwitch_status);
-        } // uncomment this
+        }
 }
 
 
@@ -389,11 +389,8 @@ static void taskMasterThread( void *pvParameters )
         REDLED = !REDLED;           // The red LED is blinking
     }
 
-    while(SW2IN){
-        //
         REDLED = 0;
         vTaskSuspend(taskHandle_BlinkRedLED);
-    }
 
     // TODO: Turn off the RED LED, we no longer need that.
 
@@ -420,8 +417,21 @@ static void taskdcMotor(void *pvParameters){
     // TODO: use a polling that continuously read from the bumpSwitch_status,
     //       and run this forever in a while loop.
     //       use dcMotor_response and bumpSwitch_status for the parameter
-    while(1){
+    while(1)
+    {
         if (bumpSwitch_status == 0x6D || bumpSwitch_status == 0xAD || bumpSwitch_status == 0xCD || bumpSwitch_status == 0xE5 || bumpSwitch_status == 0xE9 || bumpSwitch_status == 0xEC)
-        {dcMotor_response(bumpSwitch_status);}
+        {
+            dcMotor_response(bumpSwitch_status);
+        }
+        dcMotor_Forward(500,1);
     }
 };
+
+static void IQR_taskEMotor(void *pvParameters){
+    dcMotor_Init();
+    while(1)
+    {
+        uint8_t status;
+        status = P4->IV;
+    }
+}
