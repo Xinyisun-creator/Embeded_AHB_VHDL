@@ -158,11 +158,11 @@ void play_song()
         beep(f,750);
         beep(e,500);
         delay_ms(5);
-        beep(e,300);
-        beep(g,200);
+        beep(e,500);
+        beep(g,500);
         delay_ms(5);
-        beep(f,300);
-        beep(e,200);
+        beep(f,500);
+        beep(e,500);
 
         delay_ms(500);
     //Third line
@@ -181,10 +181,10 @@ void play_song()
         beep(e,200);
 
         beep(d,400);
-        beep(b,100);
+        beep(b,40000);
         delay_ms(5);
-        beep(cH,250);
-        beep(dH,250);
+        beep(cH,550);
+        beep(dH,550);
         delay_ms(5);
         beep(b,500);
         beep(b,500);
