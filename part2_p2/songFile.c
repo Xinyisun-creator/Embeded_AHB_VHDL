@@ -181,7 +181,7 @@ void play_song()
         beep(e,200);
 
         beep(d,400);
-        beep(b,40000);
+        beep(b,400);
         delay_ms(5);
         beep(cH,550);
         beep(dH,550);
