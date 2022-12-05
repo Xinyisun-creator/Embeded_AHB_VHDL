@@ -94,6 +94,8 @@ static void taskReadInputSwitch(void *pvParameters); //*pvParameters
 static void taskdcMotor(void *pvParameters);
 static void taskDisplayOutputLED(void *pvParameters);
 
+static void taskReference(void *pvParameters);
+
 
 /*
  * Called by main() to create the main program application
@@ -118,6 +120,8 @@ xTaskHandle taskHandle_dcMotor;
 xTaskHandle taskHandle_InputSwitch;
 // TODO: declare an identifier of task handler called "taskHandle_OutputLED"
 xTaskHandle taskHandle_OutputLED;
+
+xTaskHandle taskHandle_Reference;
 
 
 void main_program(void);
@@ -150,7 +154,7 @@ void main_program( void )
             "taskT",
             128,
             NULL,
-            3,
+            5,
             &taskHandle_BlinkRedLED);
 
         // TODO: Create a task that has these parameters=
@@ -165,7 +169,7 @@ void main_program( void )
             "taskB",
             128,
             NULL,
-            1,
+            3,
             &taskHandle_BumpSwitch
         );
 
@@ -181,7 +185,7 @@ void main_program( void )
             "taskS",
             128,
             NULL,
-            1,
+            3,
             &taskHandle_PlaySong);
 
         // TODO: Create a task that has these parameters=
@@ -196,7 +200,7 @@ void main_program( void )
             "taskM",
             128,
             NULL,
-            1,
+            3,
             &taskHandle_dcMotor
         );
 
@@ -212,7 +216,7 @@ void main_program( void )
             "taskR",
             128,
             NULL,
-            1,
+            3,
             &taskHandle_InputSwitch
         );
 
@@ -228,9 +232,19 @@ void main_program( void )
             "taskD",
             128,
             NULL,
-            1,
+            3,
             &taskHandle_OutputLED
         );
+
+         xTaskCreate(
+            taskReference,
+            "reference",
+            128,
+            NULL,
+            2,
+            &taskHandle_Reference
+        );       
+
         //////////////////////////////////////////////////////////////////
         // TIP: to start a scheduler, use vTaskStartScheduler in FreeRTOS
         // URL : https://www.freertos.org/a00132.html
@@ -247,6 +261,9 @@ void main_program( void )
     memory management section on the FreeRTOS web site for more details. */
     for( ;; );
 }
+
+static void taskReference(void *pvParameters){};
+
 /*-----------------------------------------------------------------*/
 /*------------------- FreeRTOS configuration ----------------------*/
 /*-------------   DO NOT MODIFY ANYTHING BELOW HERE   -------------*/
@@ -337,18 +354,25 @@ static void taskReadInputSwitch(void *pvParameters){
                 // wheel would spins quickly, but priority of DCmotor would be 1, which is less than taskHandle_PlaySong
                 // why?
 
-                vTaskPrioritySet(taskHandle_InputSwitch, 2);
-                for (i=0; i<70000; i++);
-                vTaskPrioritySet(taskHandle_PlaySong, 2);
-                for (i=0; i<70000; i++);
+                //try 1
+                vTaskPrioritySet(NULL, 4);
+                vTaskPrioritySet(taskHandle_PlaySong, 4);
+
+                //try 2
+                vTaskPrioritySet(taskHandle_dcMotor, 1);
+                vTaskPrioritySet(taskHandle_BumpSwitch, 1);
                 song_en = 1;
             }
             else{
                 //vTaskResume(taskHandle_dcMotor);
-                vTaskPrioritySet(taskHandle_InputSwitch, 1);
-                for (i=0; i<70000; i++);
-                vTaskPrioritySet(taskHandle_PlaySong, 1);
-                for (i=0; i<70000; i++);
+
+                //try 1
+                vTaskPrioritySet(NULL, 3);
+                vTaskPrioritySet(taskHandle_PlaySong, 3);
+
+                //try 2
+                vTaskPrioritySet(taskHandle_dcMotor, 3);
+                vTaskPrioritySet(taskHandle_BumpSwitch, 3);
                 song_en = 0;
             }
         }
@@ -459,12 +483,3 @@ static void taskdcMotor(void *pvParameters){
         dcMotor_Forward(500,1);
     }
 };
-
-//static void IQR_taskEMotor(void *pvParameters){
-//    dcMotor_Init();
-//    while(1)
-//    {
-//        uint8_t status;
-//        status = P4->IV;
-//    }
-//}
