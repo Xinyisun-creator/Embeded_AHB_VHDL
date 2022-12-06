@@ -1,0 +1,7 @@
+                    //vTaskSuspend(taskHandle_dcMotor);
+                    // question:
+                    // condition : comment vTaskSuspend(taskHandle_dcMotor);
+                    // some times the priority of dcMotor will react in wired way.
+                    // wheel would spins quickly, but priority of DCmotor would be 1, which is less than taskHandle_PlaySong
+                    // why?
+                    // cause when the priority of other task increased, the DCmotor task may be in 'running state', the stack or process is used. => conflict happens.
