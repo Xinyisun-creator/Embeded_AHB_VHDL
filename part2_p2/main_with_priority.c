@@ -94,7 +94,7 @@ static void taskReadInputSwitch(void *pvParameters); //*pvParameters
 static void taskdcMotor(void *pvParameters);
 static void taskDisplayOutputLED(void *pvParameters);
 
-static void taskReference(void *pvParameters);
+static void taskStopDCmotor(void *pvParameters);
 
 
 /*
@@ -121,7 +121,7 @@ xTaskHandle taskHandle_InputSwitch;
 // TODO: declare an identifier of task handler called "taskHandle_OutputLED"
 xTaskHandle taskHandle_OutputLED;
 
-xTaskHandle taskHandle_Reference;
+xTaskHandle taskHandle_stopDC;
 
 
 void main_program(void);
@@ -137,113 +137,72 @@ void main_program( void )
     // TODO: initialise systick timer
     SysTick_Init();
 
-    //////////////////////////////////////////////////////
-    // TIP: to create a task, use xTaskCreate in FreeRTOS
-    // URL : https://www.freertos.org/a00125.html
-    //////////////////////////////////////////////////////
 
-        // TODO: Create a task that has these parameters=
-        //       pvTaskCode: taskMasterThread
-        //       pcName: taskT
-        //       usStackDepth: 128
-        //       pvParameters: NULL
-        //       uxPriority: 2
-        //       pxCreatedTask: taskHandle_BlinkRedLED
         xTaskCreate(
             taskMasterThread,
             "taskT",
             128,
             NULL,
-            5,
+            4,
             &taskHandle_BlinkRedLED);
 
-        // TODO: Create a task that has these parameters=
-        //       pvTaskCode: taskBumpSwitch
-        //       pcName: taskB
-        //       usStackDepth: 128
-        //       pvParameters: NULL
-        //       uxPriority: 1
-        //       pxCreatedTask: taskHandle_BumpSwitch
+
         xTaskCreate(
             taskBumpSwitch,
             "taskB",
             128,
             NULL,
-            3,
+            2,
             &taskHandle_BumpSwitch
         );
 
-        // TODO: Create a task that has these parameters=
-        //       pvTaskCode: taskPlaySong
-        //       pcName: taskS
-        //       usStackDepth: 128
-        //       pvParameters: NULL
-        //       uxPriority: 1
-        //       pxCreatedTask: taskHandle_PlaySong
+
         xTaskCreate(
             taskPlaySong,
             "taskS",
             128,
             NULL,
-            3,
+            2,
             &taskHandle_PlaySong);
 
-        // TODO: Create a task that has these parameters=
-        //       pvTaskCode: taskdcMotor
-        //       pcName: taskM
-        //       usStackDepth: 128
-        //       pvParameters: NULL
-        //       uxPriority: 1
-        //       pxCreatedTask: taskHandle_dcMotor
+
         xTaskCreate(
             taskdcMotor,
             "taskM",
             128,
             NULL,
-            3,
+            2,
             &taskHandle_dcMotor
         );
 
-        // TODO: Create a task that has these parameters=
-        //       pvTaskCode: taskReadInputSwitch
-        //       pcName: taskR
-        //       usStackDepth: 128
-        //       pvParameters: NULL
-        //       uxPriority: 1
-        //       pxCreatedTask: taskHandle_InputSwitch
+
         xTaskCreate(
             taskReadInputSwitch,
             "taskR",
             128,
             NULL,
-            3,
+            2,
             &taskHandle_InputSwitch
         );
 
-        // TODO: Create a task that has these parameters=
-        //       pvTaskCode: taskDisplayOutputLED
-        //       pcName: taskD
-        //       usStackDepth: 128
-        //       pvParameters: NULL
-        //       uxPriority: 1
-        //       pxCreatedTask: taskHandle_OutputLED
+
         xTaskCreate(
             taskDisplayOutputLED,
             "taskD",
             128,
             NULL,
-            3,
+            2,
             &taskHandle_OutputLED
         );
 
          xTaskCreate(
-            taskReference,
-            "reference",
+            taskStopDCmotor,
+            "stop_DC_motor",
             128,
             NULL,
-            2,
-            &taskHandle_Reference
-        );       
+            1,
+            &taskHandle_stopDC
+        );
 
         //////////////////////////////////////////////////////////////////
         // TIP: to start a scheduler, use vTaskStartScheduler in FreeRTOS
@@ -262,7 +221,13 @@ void main_program( void )
     for( ;; );
 }
 
-static void taskReference(void *pvParameters){};
+static void taskStopDCmotor(void *pvParameters){
+    dcMotor_Init();
+    while(1){
+        dcMotor_Stop(1);
+    };
+};
+
 
 /*-----------------------------------------------------------------*/
 /*------------------- FreeRTOS configuration ----------------------*/
@@ -353,26 +318,23 @@ static void taskReadInputSwitch(void *pvParameters){
                 // some times the priority of dcMotor will react in wired way.
                 // wheel would spins quickly, but priority of DCmotor would be 1, which is less than taskHandle_PlaySong
                 // why?
+                // cause when the priority of other task increased, the DCmotor task may be in 'running state', the stack or process is used. => conflict happens.
 
                 //try 1
-                vTaskPrioritySet(NULL, 4);
-                vTaskPrioritySet(taskHandle_PlaySong, 4);
+                vTaskPrioritySet(taskHandle_stopDC,3);
+                vTaskPrioritySet(NULL, 3);
+                vTaskPrioritySet(taskHandle_PlaySong, 3);
 
-                //try 2
-                vTaskPrioritySet(taskHandle_dcMotor, 1);
-                vTaskPrioritySet(taskHandle_BumpSwitch, 1);
                 song_en = 1;
             }
             else{
                 //vTaskResume(taskHandle_dcMotor);
 
                 //try 1
-                vTaskPrioritySet(NULL, 3);
-                vTaskPrioritySet(taskHandle_PlaySong, 3);
+                vTaskPrioritySet(taskHandle_stopDC,1);
+                vTaskPrioritySet(NULL, 2);
+                vTaskPrioritySet(taskHandle_PlaySong, 2);
 
-                //try 2
-                vTaskPrioritySet(taskHandle_dcMotor, 3);
-                vTaskPrioritySet(taskHandle_BumpSwitch, 3);
                 song_en = 0;
             }
         }
