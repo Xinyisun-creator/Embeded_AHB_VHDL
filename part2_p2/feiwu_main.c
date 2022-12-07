@@ -66,9 +66,13 @@
 #define SW2IN ((*((volatile uint8_t *)(0x42098010)))^1) // input: switch SW2
 // TODO: declare a global variable to read bump switches value,
 //       name this as bumpSwitch_status and use uint8_t
+
+// Globals
 uint8_t bumpSwitch_status; // bump switch value
 uint8_t song_en = 0;
 uint8_t mode = 0;
+
+static SemaphoreHandle_t bin_sem;
 
 // static void Switch_Init
 static void Switch_Init(void){
@@ -97,6 +101,8 @@ static void taskDisplayOutputLED(void *pvParameters);
 
 static void taskStopDCmotor(void *pvParameters);
 
+static void task_interrupt(void *pvParameters);
+
 
 /*
  * Called by main() to create the main program application
@@ -124,6 +130,9 @@ xTaskHandle taskHandle_OutputLED;
 
 xTaskHandle taskHandle_stopDC;
 
+xTaskHandle taskHandle_intterupt;
+
+
 
 void main_program(void);
 void PORT4_IRQHandler(void);
@@ -138,6 +147,8 @@ void main_program( void )
 
     // TODO: initialise systick timer
     SysTick_Init();
+
+    DisableInterrupts();
 
 
         xTaskCreate(
@@ -212,6 +223,7 @@ void main_program( void )
         //////////////////////////////////////////////////////////////////
 
         // TODO: start the scheduler
+
         vTaskStartScheduler();
 
 
@@ -229,6 +241,15 @@ static void taskStopDCmotor(void *pvParameters){
         dcMotor_Stop(1);
     };
 };
+
+static void task_interrupt(void *pvParameters){
+    while(1){
+        EnableInterrupts();
+        xSemaphoreTake(bin_sem, portMAX_DELAY);
+        dcMotor_response(bumpSwitch_status);
+        dcMotor_Forward(300,1);
+    }
+}
 
 
 /*-----------------------------------------------------------------*/
@@ -290,75 +311,62 @@ void mode_LED(char i_SW2){
     }
 }
 
-char sw_detection (char i_SW1,char i_SW2){
-  int i;
-  if (SW1IN == 1 && SW2IN ==0)
-  {
-      i_SW1 ^= 1;                 // toggle the variable i_SW1
-      for (i=0; i<1000000; i++);// this waiting loop is used , to prevent the switch bounce.
-      return i_SW1;
-  }
-
-  if (SW2IN == 1 && SW1IN == 0)
-  {
-      i_SW2 ^= 1;
-      for (i=0; i<1000000; i++);
-      return i_SW2;
-  }
-
-}
-
-//if (SW2IN == 1 && SW1IN == 1 )
-//{mode = 0;return mode;}
-//else
-//{mode = mode;}
 
 static void taskReadInputSwitch(void *pvParameters){
     char i_SW1=0;char i_SW2=0;
-    int mode = 0;
     int i;
-//    DisableInterrupts();
     while(1) //(;;)
-    {   
-        if (SW1IN == 1 && SW2IN ==0)
-        {
-            i_SW1 ^= 1;for (i=0; i<1000000; i++);  // this waiting loop is used , to prevent the switch bounce.
-        }
-        
-        else if (SW2IN == 1 && SW1IN == 0 )
-        {
-            i_SW2 ^= 1;for (i=0; i<1000000; i++);  // this waiting loop is used // to prevent the switch bounce.
-        }
-
-        if (i_SW1 == 1) {
-            REDLED = 1;     // turn on the red LED
-            vTaskSuspend(taskHandle_PlaySong);// TODO: suspend the task taskHandle_PlaySong
-            }
-
-        else {
-            REDLED = 0;     // turn off the red LED
-            vTaskResume(taskHandle_PlaySong);   // TODO: resume the task taskHandle_PlaySong
-        }
-    
+    {
         while(mode == 1){
             mode_LED(i_SW2);
-            vTaskResume(taskBumpSwitch);
-            if(i_SW2 == 0){ // play the impperial march and run normally
-                vTaskPrioritySet(NULL, 2);
-                vTaskPrioritySet(taskHandle_stopDC,1);
-                vTaskPrioritySet(taskHandle_PlaySong, 2);
-                song_en = 0;
+            vTaskResume(taskHandle_BumpSwitch);
+
+            if (SW1IN == 1 && SW2IN ==0)
+            {
+                i_SW1 ^= 1;                 // toggle the variable i_SW1
+                for (i=0; i<1000000; i++);// this waiting loop is used , to prevent the switch bounce.
             }
-            else{ // stop running and just play the song.
-                vTaskPrioritySet(taskHandle_stopDC,3);
-                vTaskPrioritySet(NULL, 3);
-                vTaskPrioritySet(taskHandle_PlaySong, 3);
-                song_en = 1;
+
+            if (SW2IN == 1 && SW1IN == 0)
+            {
+                i_SW2 ^= 1;
+                for (i=0; i<1000000; i++);
+            }
+
+            if (i_SW1 == 1) {
+                REDLED = 1;     // turn on the red LED
+                vTaskSuspend(taskHandle_PlaySong);// TODO: suspend the task taskHandle_PlaySong
+                if(i_SW2 == 0){ // play the impperial march and run normally
+                    vTaskPrioritySet(NULL, 2);
+                    vTaskPrioritySet(taskHandle_stopDC,1);
+                    vTaskPrioritySet(taskHandle_PlaySong, 2);
+                    song_en = 0;
+                }
+                else{ // stop running and just play the song.
+                    vTaskPrioritySet(taskHandle_stopDC,3);
+                    vTaskPrioritySet(NULL, 3);
+                    vTaskPrioritySet(taskHandle_PlaySong, 3);
+                    song_en = 1;
+                }
+                }
+
+            else if(i_SW1 == 0){
+                REDLED = 0;     // turn off the red LED
+                vTaskResume(taskHandle_PlaySong);   // TODO: resume the task taskHandle_PlaySong
             }
         }
 
         while (mode == 2)
         {
+            xTaskCreate(
+                task_interrupt,
+                'IRQ',
+                128,
+                NULL,
+                4,
+                &taskHandle_intterupt
+                     );
+
             mode_LED(i_SW2);
             if(i_SW2 == 0){
                 song_en = 0;
@@ -366,21 +374,10 @@ static void taskReadInputSwitch(void *pvParameters){
             else{
                 song_en = 1;
             }
-            vTaskSuspend(taskBumpSwitch);
-            vTaskPrioritySet(NULL, 2);
-            EnableInterrupt();
+//            vTaskPrioritySet(taskHandle_intterupt,3);
         }
-        
 }
 }
-
-//        while(mode == 2){
-//            vTaskPrioritySet(taskHandle_stopDC,3);
-//            vTaskPrioritySet(taskdcMotor,1);
-//            vTaskPrioritySet(taskHandle_stopDC,1);
-//            EnableInterrupts();
-//        }
-
 
 // TODO: create a static void function for taskPlaySong
 static void taskPlaySong(void *pvParameters){
@@ -444,13 +441,13 @@ static void taskMasterThread( void *pvParameters )
         REDLED = !REDLED;           // The red LED is blinking
     }
 
-    while(SW2IN && !SW1IN){
+    while(!SW2IN && SW1IN){
         REDLED = 0;
         mode = 1;
         vTaskSuspend(taskHandle_BlinkRedLED);
     }
 
-    while(!SW2IN && SW1IN){
+    while(SW2IN && !SW1IN){
         REDLED = 0;
         mode = 2;
         vTaskSuspend(taskHandle_BlinkRedLED);
@@ -493,8 +490,8 @@ static void taskdcMotor(void *pvParameters){
 }
 
 void PORT4_IRQHandler(void){
-    uint8_t status;
-    status = P4->IV;
-    dcMotor_response(status);
+    bumpSwitch_status = P4->IV;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     P4->IFG &= ~0xED;
+    xSemaphoreGiveFromISR(bin_sem,&xHigherPriorityTaskWoken);
 }
