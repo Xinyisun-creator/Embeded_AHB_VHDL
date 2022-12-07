@@ -328,7 +328,7 @@ void mode_LED(char i_SW2){
 static void taskReadInputSwitch(void *pvParameters){
     char i_SW1=0;char i_SW2=0;
     int i;
-    DisableInterrupts();
+//    DisableInterrupts();
     while(1) //(;;)
     {
         while(mode == 1){
@@ -372,18 +372,16 @@ static void taskReadInputSwitch(void *pvParameters){
 
         while (mode == 2)
         {
-//            mode_LED(i_SW2);
-//            if(i_SW2 == 0){
-//                song_en = 0;
-//            }
-//            else{
-//                song_en = 1;
-//            }
-
+            mode_LED(i_SW2);
+            if(i_SW2 == 0){
+                song_en = 0;
+            }
+            else{
+                song_en = 1;
+            }
             vTaskSuspend(taskBumpSwitch);
+            vTaskPrioritySet(NULL, 2);
             EnableInterrupts();
-            dcMotor_Forward(500,1);
-//            vTaskPrioritySet(NULL, 2);
         }
 
 }
