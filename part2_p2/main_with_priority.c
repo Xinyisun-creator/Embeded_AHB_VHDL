@@ -50,34 +50,24 @@
 #include "inc/CortexM.h"
 
 
-// TODO: include the songFile header file
-#include "./inc/songFile.h"
-// TODO: include the dcMotor header file
-#include "./inc/dcMotor.h"
-// TODO: include the bumpSwitch header file
-#include "./inc/bumpSwitch.h"
-// TODO: include the outputLED header file
-#include "./inc/outputLED.h"
-// TODO: include the SysTick header file
-#include "./inc/SysTick.h"
-// TODO: bit-banded addresses positive logic of input switch S1
-#define SW1IN ((*((volatile uint8_t *)(0x42098004)))^1) // input:switch SW1
-// TODO: bit-banded addresses positive logic of input switch S2
-#define SW2IN ((*((volatile uint8_t *)(0x42098010)))^1) // input: switch SW2
-// TODO: declare a global variable to read bump switches value,
-//       name this as bumpSwitch_status and use uint8_t
 
-// Globals
+#include "./inc/songFile.h"
+#include "./inc/dcMotor.h"
+#include "./inc/bumpSwitch.h"
+#include "./inc/outputLED.h"
+#include "./inc/SysTick.h"
+#define SW1IN ((*((volatile uint8_t *)(0x42098004)))^1) // input:switch SW1
+#define SW2IN ((*((volatile uint8_t *)(0x42098010)))^1) // input: switch SW2
+
+
 uint8_t bumpSwitch_status; // bump switch value
-uint8_t song_en = 0;
+uint8_t song_en = 0; // song_en = 0: The Imperial March ; song_en = 1 Ode to Joy.
 uint8_t mode = 0;
 
 static SemaphoreHandle_t bin_sem;
 
 // static void Switch_Init
 static void Switch_Init(void){
-    // negative logic built-in Button 1 connected to P1.1
-    // negative logic built-in Button 2 connected to P1.4
     P1->SEL0 &= ~0x12;
     P1->SEL1 &= ~0x12;      // configure P1.4 and P1.1 as GPIO
     P1->DIR &= ~0x12;       // make P1.4 and P1.1 in
@@ -85,51 +75,26 @@ static void Switch_Init(void){
     P1->OUT |= 0x12;        // P1.4 and P1.1 are pull-up
 };
 
-// a static void function for a task called "taskMasterThread"
+
 static void taskMasterThread( void *pvParameters );
-// TODO: declare a static void function for a task called "taskBumpSwitch"
 static void taskBumpSwitch(void *pvParameters);
-// TODO: declare a static void function for a task called "taskPlaySong"
 static void taskPlaySong(void *pvParameters);
-// TODO: declare a static void function for a task called "taskdcMotor"
 static void taskdcMotor(void *pvParameters);
-// TODO: declare a static void function for a task called "taskReadInputSwitch"
-static void taskReadInputSwitch(void *pvParameters); //*pvParameters
-// TODO: declare a static void function for a task called "taskdcMotor"
+static void taskReadInputSwitch(void *pvParameters); 
 static void taskdcMotor(void *pvParameters);
 static void taskDisplayOutputLED(void *pvParameters);
-
 static void taskStopDCmotor(void *pvParameters);
-
 static void task_interrupt(void *pvParameters);
-
-
-/*
- * Called by main() to create the main program application
- */
-
-
-
-/*
- * The configuration of clocks for frequency.
- */
 static void prvConfigureClocks( void );
 
-// declare an identifier of task handler called "taskHandle_BlinkRedLED"
+
 xTaskHandle taskHandle_BlinkRedLED;
-// TODO: declare an identifier of task handler called "taskHandle_BumpSwitch"
 xTaskHandle taskHandle_BumpSwitch;
-// TODO: declare an identifier of task handler called "taskHandle_PlaySong"
 xTaskHandle taskHandle_PlaySong;
-// TODO: declare an identifier of task handler called "taskHandle_dcMotor"
 xTaskHandle taskHandle_dcMotor;
-// TODO: declare an identifier of task handler called "taskHandle_InputSwitch"
 xTaskHandle taskHandle_InputSwitch;
-// TODO: declare an identifier of task handler called "taskHandle_OutputLED"
 xTaskHandle taskHandle_OutputLED;
-
 xTaskHandle taskHandle_stopDC;
-
 xTaskHandle taskHandle_intterupt;
 
 
@@ -141,14 +106,12 @@ void main_program( void )
 {
     // initialise the clock configuration
     prvConfigureClocks();
-
     // TODO: initialise the switch
     Switch_Init();
-
     // TODO: initialise systick timer
     SysTick_Init();
 
-    DisableInterrupts();
+    // DisableInterrupts(); // used for IRQ
 
 
         xTaskCreate(
@@ -244,7 +207,7 @@ static void taskStopDCmotor(void *pvParameters){
 
 static void task_interrupt(void *pvParameters){
     while(1){
-        EnableInterrupts();
+        // EnableInterrupts();
         xSemaphoreTake(bin_sem, portMAX_DELAY);
         dcMotor_response(bumpSwitch_status);
         dcMotor_Forward(300,1);
