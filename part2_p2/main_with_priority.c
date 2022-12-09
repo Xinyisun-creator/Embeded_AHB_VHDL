@@ -80,7 +80,7 @@ static void taskMasterThread( void *pvParameters );
 static void taskBumpSwitch(void *pvParameters);
 static void taskPlaySong(void *pvParameters);
 static void taskdcMotor(void *pvParameters);
-static void taskReadInputSwitch(void *pvParameters); 
+static void taskReadInputSwitch(void *pvParameters);
 static void taskdcMotor(void *pvParameters);
 static void taskDisplayOutputLED(void *pvParameters);
 static void taskStopDCmotor(void *pvParameters);
@@ -111,19 +111,22 @@ void main_program( void )
     // TODO: initialise systick timer
     SysTick_Init();
 
-    // DisableInterrupts(); // used for IRQ
+    DisableInterrupts(); // used for IRQ
 
 
-        xTaskCreate(
+        xTaskCreate
+        (
             taskMasterThread,
             "taskT",
             128,
             NULL,
             4,
-            &taskHandle_BlinkRedLED);
+            &taskHandle_BlinkRedLED
+        );
 
 
-        xTaskCreate(
+        xTaskCreate
+        (
             taskBumpSwitch,
             "taskB",
             128,
@@ -133,16 +136,19 @@ void main_program( void )
         );
 
 
-        xTaskCreate(
+        xTaskCreate
+        (
             taskPlaySong,
             "taskS",
             128,
             NULL,
             2,
-            &taskHandle_PlaySong);
+            &taskHandle_PlaySong
+        );
 
 
-        xTaskCreate(
+        xTaskCreate
+        (
             taskdcMotor,
             "taskM",
             128,
@@ -152,7 +158,8 @@ void main_program( void )
         );
 
 
-        xTaskCreate(
+        xTaskCreate
+        (
             taskReadInputSwitch,
             "taskR",
             128,
@@ -162,7 +169,8 @@ void main_program( void )
         );
 
 
-        xTaskCreate(
+        xTaskCreate
+        (
             taskDisplayOutputLED,
             "taskD",
             128,
@@ -171,7 +179,8 @@ void main_program( void )
             &taskHandle_OutputLED
         );
 
-         xTaskCreate(
+         xTaskCreate
+         (
             taskStopDCmotor,
             "stop_DC_motor",
             128,
@@ -180,15 +189,7 @@ void main_program( void )
             &taskHandle_stopDC
         );
 
-        //////////////////////////////////////////////////////////////////
-        // TIP: to start a scheduler, use vTaskStartScheduler in FreeRTOS
-        // URL : https://www.freertos.org/a00132.html
-        //////////////////////////////////////////////////////////////////
-
-        // TODO: start the scheduler
-
         vTaskStartScheduler();
-
 
     /* INFO: If everything is fine, the scheduler will now be running,
     and the following line will never be reached.  If the following line
@@ -198,6 +199,12 @@ void main_program( void )
     for( ;; );
 }
 
+//-----------------------------------------------------------------
+// default state: taskStopDCmotor is in the lowest priority
+// the function of it is to prevent the chaos of taskdcMotor.
+// When the dcMotor is in 'running state', and the priority of dcMotor is changed. the conflict may occur in the system. the wheel will run with very fast speed.
+// to avoid this situation, let taskStopDCmotor to stop motor at first, and then change the dc motor priority.
+//-----------------------------------------------------------------
 static void taskStopDCmotor(void *pvParameters){
     dcMotor_Init();
     while(1){
@@ -205,9 +212,13 @@ static void taskStopDCmotor(void *pvParameters){
     };
 };
 
+//-------------------------------------------------------------------
+// it is for the IRQ interrupt.
+// unfortunately, we failed in creating IRQ interrupt system. So this function just play nothing.
+//-------------------------------------------------------------------
 static void task_interrupt(void *pvParameters){
     while(1){
-        // EnableInterrupts();
+        EnableInterrupts();
         xSemaphoreTake(bin_sem, portMAX_DELAY);
         dcMotor_response(bumpSwitch_status);
         dcMotor_Forward(300,1);
@@ -260,11 +271,15 @@ void vPreSleepProcessing( uint32_t ulExpectedIdleTime ){}
 /*--------------------------- END ---------------------------------*/
 /*-----------------------------------------------------------------*/
 
+
 static void Switch_Init(void );
 
-// a static void function for taskReadInputSwitch
-// static void taskReadInputSwitch( void *pvParameters )
-
+//---------------------------------------------------------------------
+// mode_LED:
+// The LED is used to let user know which mode the system played.
+// mode1.a: running wheel and play The Imperial March; The Blue LED on.
+// mode1.b: Stop wheel and play The Ode to Joy;        The Pink LED on.
+//---------------------------------------------------------------------
 void mode_LED(char i_SW2){
     if(i_SW2 == 1){
         Port2_Output2(PINK);
@@ -274,11 +289,23 @@ void mode_LED(char i_SW2){
     }
 }
 
-
+//---------------------------------------------------------------------
+// taskReadInputSwitch:
+// in Mode 1:
+//          switch 1: to control the song to be resumed or suspended.
+//                    to control the priority based on the users choice. (mode1.a or mode1.b)
+//
+//          switch 2: to let users to choose the mode they want to play
+//                    mode1.a: running wheel and play The Imperial March; The Blue LED on.
+//                    mode1.b: Stop wheel and play The Ode to Joy;The Pink LED on.
+// in Mode 2:
+//          this mode is used to test the IRQ interrupt. However, the IRQ interrupt is failed.
+//          By the way, the Mode 2 just play nothing.
+//---------------------------------------------------------------------
 static void taskReadInputSwitch(void *pvParameters){
     char i_SW1=0;char i_SW2=0;
     int i;
-    while(1) //(;;)
+    while(1)
     {
         while(mode == 1){
             mode_LED(i_SW2);
@@ -286,29 +313,33 @@ static void taskReadInputSwitch(void *pvParameters){
 
             if (SW1IN == 1 && SW2IN ==0)
             {
-                i_SW1 ^= 1;                 // toggle the variable i_SW1
-                for (i=0; i<1000000; i++);// this waiting loop is used , to prevent the switch bounce.
+                i_SW1 ^= 1;                // when press switch 1, 1 => 0 ; 0 => 1;
+                for (i=0; i<1000000; i++); // this waiting loop is used , to prevent the switch bounce.
             }
 
             if (SW2IN == 1 && SW1IN == 0)
             {
-                i_SW2 ^= 1;
-                for (i=0; i<1000000; i++);
+                i_SW2 ^= 1;                 // when press switch 2, 1 => 0 ; 0 => 1;
+                for (i=0; i<1000000; i++); // this waiting loop is used , to prevent the switch bounce.
             }
-            // function of switch1 in mode1:
-            //a.
+
             if (i_SW1 == 1)
             {
                 REDLED = 1;     // turn on the red LED
-                vTaskSuspend(taskHandle_PlaySong);// TODO: suspend the task taskHandle_PlaySong
-                if(i_SW2 == 0){ // play the impperial march and run normally
+                vTaskSuspend(taskHandle_PlaySong);//suspend the task taskHandle_PlaySong
+
+                // the mode of system is in mode.1.a
+                if(i_SW2 == 0)
+                {
                     vTaskPrioritySet(NULL, 2);
                     vTaskPrioritySet(taskHandle_stopDC,1);
                     vTaskPrioritySet(taskHandle_PlaySong, 2);
                     song_en = 0;
                 }
+
+                // the mode of system is in mode.1.b
                 else
-                { // stop running and just play the song.
+                {
                     vTaskPrioritySet(taskHandle_stopDC,3);
                     vTaskPrioritySet(NULL, 3);
                     vTaskPrioritySet(taskHandle_PlaySong, 3);
@@ -338,8 +369,10 @@ static void taskReadInputSwitch(void *pvParameters){
         }
 }
 }
-
-// create a static void function for taskPlaySong
+//---------------------------------------------------------------------------------------------------------
+//TaskPlaySong:
+// when user press switch 2 in mode 1, the system will add suitable song behind the current playing song.
+//---------------------------------------------------------------------------------------------------------
 static void taskPlaySong(void *pvParameters){
     // initialise the song
     init_song_pwm();
@@ -354,7 +387,9 @@ static void taskPlaySong(void *pvParameters){
 
 }
 
-// TODO: create a static void function for taskBumpSwitch
+//---------------------------------------------------------------------------------------------------------
+// static void function for taskBumpSwitch
+//---------------------------------------------------------------------------------------------------------
 static void taskBumpSwitch(void *pvParameters)
 {
     // initialise bump switches
@@ -367,7 +402,9 @@ static void taskBumpSwitch(void *pvParameters)
     {bumpSwitch_status = Bump_Read_Input();}
 }
 
-
+//---------------------------------------------------------------------------------------------------------
+//static void function for taskDisplayOutputLED
+//---------------------------------------------------------------------------------------------------------
 static void taskDisplayOutputLED(void *pvParameters)
 {
     // create a static void function for taskDisplayOutputLED
@@ -377,7 +414,11 @@ static void taskDisplayOutputLED(void *pvParameters)
 }
 
 
-// a static void function for taskMasterThread
+//---------------------------------------------------------------------------------------------------------
+//static void function for taskMasterThread
+//  press switch 1: mode 1, and suspend taskMasterThread forever.
+//  press switch 2: mode 2, and suspend taskMasterThread forever.
+//---------------------------------------------------------------------------------------------------------
 static void taskMasterThread( void *pvParameters )
 {
     int i;
@@ -410,8 +451,10 @@ static void taskMasterThread( void *pvParameters )
     }
 }
 
-
+//---------------------------------------------------------------------------------------------------------
 //static void function for taskdcMotor
+//      use polling function to detect bumpSwitch, and rotate in suitable direction.
+//---------------------------------------------------------------------------------------------------------
 static void taskdcMotor(void *pvParameters){
     //initialise the DC Motor
     dcMotor_Init();
@@ -427,6 +470,11 @@ static void taskdcMotor(void *pvParameters){
     }
 }
 
+//---------------------------------------------------------------------------------------------------------
+//static void function for PORT4_IRQHandler
+//      ideal situation: the PORT4_IRQHandler would detect the bump switch all the time, like taskdcMotor(POLLING).
+//      However, the interrupt detection system is failed.
+//---------------------------------------------------------------------------------------------------------
 void PORT4_IRQHandler(void){
     bumpSwitch_status = P4->IV;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
